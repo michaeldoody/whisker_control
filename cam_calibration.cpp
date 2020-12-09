@@ -13,6 +13,8 @@ Mat cdst, cdstP;
 
 int lowThreshold = 8;
 const int max_lowThreshold = 100;
+double n_threshold = 128;
+int n_erode_dilate = 1;
 const int kernel_size = 3;
 
 static void Calibrate(int, void*)
@@ -58,12 +60,38 @@ int main( int argc, char** argv )
       cout << "Could not open video stream!\n" << endl;
       return -1;
     }
+    
+    Mat m = src.clone();
+    cvtColor(m,m,COLOR_BGR2GRAY);
+    blur(m,m,Size(5,5));
+    threshold(m,m,n_threshold,255,1);
+    erode(m,m,Mat(),Point(-1,-1),n_erode_dilate);
+    dilate(m,m,Mat(),Point(-1,-1),n_erode_dilate);
+    
+    vector< std::vector<cv::Point> > contours;
+	vector<cv::Point> points;
+	findContours(m, contours, RETR_TREE, CHAIN_APPROX_SIMPLE);
+	
+	for (size_t i=0; i<contours.size(); i++) 
+	{
+		for (size_t j = 0; j < contours[i].size(); j++) 
+		{
+			cv::Point p = contours[i][j];
+			points.push_back(p);
+		}
+	}
+	
+	if(points.size() > 0)
+	{
+		Rect brect = boundingRect(Mat(points).reshape(2));
+		rectangle(src, brect.tl(), brect.br(), Scalar(100, 100, 200), 2, LINE_AA);
+	}
   
     dst.create( src.size(), src.type() );
     cvtColor( src, src_gray, COLOR_BGR2GRAY );
     namedWindow( "RasPi Cam", WINDOW_AUTOSIZE );
     imshow("RasPi Cam", src);
-    Calibrate(0, 0);
+    // Calibrate(0, 0);
 
     if (waitKey(10) == 27)
     {
