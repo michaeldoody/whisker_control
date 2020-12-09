@@ -17,8 +17,6 @@ double n_threshold = 128;
 int n_erode_dilate = 1;
 const int kernel_size = 3;
 
-Scalar color( rand()&255, rand()&255, rand()&255 );
-
 static void Calibrate(int, void*)
 {
     blur( src_gray, detected_edges, Size(3,3) );
@@ -56,46 +54,45 @@ int main( int argc, char** argv )
   {
     bool bSuccess = cap.read(src); // read a new frame from video 
 
-    //Breaking the while loop at the end of the video
+    // Breaking the while loop
     if (bSuccess == false) 
     {
       cout << "Could not open video stream!\n" << endl;
       return -1;
     }
     
+    int largest_area=0;
+    int largest_contour_index=0;
+    Rect bounding_rect;
+    
     Mat m = src.clone();
     cvtColor(m,m,COLOR_BGR2GRAY);
     blur(m,m,Size(3,3));
-    threshold(m,m,140,255,1);
-    //erode(m,m,Mat(),Point(-1,-1),n_erode_dilate);
-    //dilate(m,m,Mat(),Point(-1,-1),n_erode_dilate);
+    threshold(m, m, 140, 255, 1);
     
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
     vector<cv::Point> points;
+    
+    // Find all contours in image
     findContours(m, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE );
 	
-    //for (size_t i=0; i<contours.size(); i++) 
-    //{
-	//for (size_t j = 0; j < contours[i].size(); j++) 
-	//{
-	//    Point p = contours[i][j];
-	 //   points.push_back(p);
-	//}
-    //}
-    
-    // iterate through all the top-level contours,
-    // draw each connected component with its own random color
-
-    
-    drawContours( src, contours, -1, color);
-
+    //	Find largest contour (the calibration slide's mm crosshairs)
+    for(size_t i = 0; i < contours.size(); i++)
+    {
+	double area = contourArea(contours[i]);
 	
-    //if(points.size() > 0)
-    //{
-	//Rect brect = boundingRect(Mat(points).reshape(2));
-	//rectangle(src, brect.tl(), brect.br(), Scalar(100, 100, 200), 2, LINE_AA);
-    //}
+	if(area > largest_area)
+	{
+	    largest_area = area;
+	    largest_contour_index = i;
+	    bounding_rect = boundingRect(contours[i]);
+	}
+    }
+
+    // Outline the calibration crosshairs and draw a rectangle around it
+    drawContours( src, contours, largest_contour_index, Scalar( 0, 255, 0 ), 1);
+    rectangle(src, bounding_rect.tl(), bounding_rect.br(), Scalar(100, 100, 200), 2, LINE_AA);
   
     dst.create( src.size(), src.type() );
     cvtColor( src, src_gray, COLOR_BGR2GRAY );
