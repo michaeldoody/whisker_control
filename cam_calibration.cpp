@@ -17,26 +17,6 @@ double n_threshold = 128;
 int n_erode_dilate = 1;
 const int kernel_size = 3;
 
-static void Calibrate(int, void*)
-{
-    blur( src_gray, detected_edges, Size(3,3) );
-    Canny( detected_edges, detected_edges, lowThreshold, lowThreshold*3, kernel_size );
-    dst = Scalar::all(0);
-    src.copyTo( dst, detected_edges);
-    
-    // Copy edges to the images that will display the results in BGR
-    cvtColor(detected_edges, cdst, COLOR_GRAY2BGR);
-    cdstP = cdst.clone();
-    
-    // Standard Hough Line Transform
-    vector<Vec2f> lines; // will hold the results of the detection
-    HoughLines(detected_edges, lines, 1, CV_PI/180, 150, 0, 0 ); // runs the actual detection
-    
-
-    
-    imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
-}
-
 int main( int argc, char** argv )
 {
   //open the video file for reading
@@ -69,6 +49,8 @@ int main( int argc, char** argv )
     cvtColor(m,m,COLOR_BGR2GRAY);
     blur(m,m,Size(3,3));
     threshold(m, m, 140, 255, 1);
+    erode(m, m, Mat(), Point(-1,-1), n_erode_dilate);
+    dilate(m, m, Mat(), Point(-1,-1), n_erode_dilate);
     
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
@@ -90,11 +72,14 @@ int main( int argc, char** argv )
 	}
     }
     
-    int height = bounding_rect.height;
-    int width = bounding_rect.width;
+    double height = bounding_rect.height;
+    double width = bounding_rect.width;
+    
+    double pixels_per_um = (int) round((height/101 + width/101)/2);
     
     cout << "Height: " << height << endl;
     cout << "Width: " << width << endl;
+    cout << "Pixels Per Micrometer: " << pixels_per_um << endl;
     cout << "\n\n" << endl;
 
     // Outline the calibration crosshairs and draw a rectangle around it
