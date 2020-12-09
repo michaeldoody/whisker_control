@@ -89,6 +89,13 @@ int main( int argc, char** argv )
 	    bounding_rect = boundingRect(contours[i]);
 	}
     }
+    
+    int height = bounding_rect.height;
+    int width = bounding_rect.width;
+    
+    cout << "Height: " << height << endl;
+    cout << "Width: " << width << endl;
+    cout << "\n\n" << endl;
 
     // Outline the calibration crosshairs and draw a rectangle around it
     drawContours( src, contours, largest_contour_index, Scalar( 0, 255, 0 ), 1);
