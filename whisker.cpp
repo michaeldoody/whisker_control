@@ -52,47 +52,8 @@ int main( int argc, char** argv )
     erode(m, m, Mat(), Point(-1,-1), n_erode_dilate);
     dilate(m, m, Mat(), Point(-1,-1), n_erode_dilate);
     
-    vector<vector<Point> > contours;
-    vector<Vec4i> hierarchy;
-    vector<cv::Point> points;
-    
-    // Find all contours in image
-    findContours(m, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE );
-	
-    //	Find largest contour (the calibration slide's mm crosshairs)
-    for(size_t i = 0; i < contours.size(); i++)
-    {
-	double area = contourArea(contours[i]);
-	
-	if(area > largest_area)
-	{
-	    largest_area = area;
-	    largest_contour_index = i;
-	    bounding_rect = boundingRect(contours[i]);
-	}
-    }
-    
-    
-    // Calculate pixels per micrometer
-    double height = bounding_rect.height;
-    double width = bounding_rect.width;
-    
-    double pixels_per_um = round((height/101 + width/101) * 1000.0 /2) / 1000.0;
-    
-    cout << "Height: " << height << endl;
-    cout << "Width: " << width << endl;
-    cout << "Pixels Per Micrometer: " << pixels_per_um << endl;
-    cout << "\n\n" << endl;
-
-    // Outline the calibration crosshairs and draw a rectangle around it
-    drawContours( src, contours, largest_contour_index, Scalar( 0, 255, 0 ), 1);
-    rectangle(src, bounding_rect.tl(), bounding_rect.br(), Scalar(100, 100, 200), 2, LINE_AA);
-  
-    dst.create( src.size(), src.type() );
-    cvtColor( src, src_gray, COLOR_BGR2GRAY );
     namedWindow( "RasPi Cam", WINDOW_AUTOSIZE );
     imshow("RasPi Cam", src);
-    // Calibrate(0, 0);
 
     if (waitKey(10) == 27)
     {
