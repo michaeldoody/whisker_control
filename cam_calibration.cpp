@@ -48,9 +48,9 @@ int main( int argc, char** argv )
     Mat m = src.clone();
     cvtColor(m,m,COLOR_BGR2GRAY);
     blur(m,m,Size(3,3));
-    threshold(m, m, 137, 255, 1);
-    erode(m, m, Mat(), Point(-1,-1), n_erode_dilate);
+    Canny(m, m, lowThreshold, lowThreshold*3, kernel_size );
     dilate(m, m, Mat(), Point(-1,-1), n_erode_dilate);
+    //erode(m, m, Mat(), Point(-1,-1), n_erode_dilate);
     
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
