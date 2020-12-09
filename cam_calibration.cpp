@@ -17,6 +17,8 @@ double n_threshold = 128;
 int n_erode_dilate = 1;
 const int kernel_size = 3;
 
+Scalar color( rand()&255, rand()&255, rand()&255 );
+
 static void Calibrate(int, void*)
 {
     blur( src_gray, detected_edges, Size(3,3) );
@@ -63,29 +65,37 @@ int main( int argc, char** argv )
     
     Mat m = src.clone();
     cvtColor(m,m,COLOR_BGR2GRAY);
-    blur(m,m,Size(5,5));
-    threshold(m,m,n_threshold,255,1);
-    erode(m,m,Mat(),Point(-1,-1),n_erode_dilate);
-    dilate(m,m,Mat(),Point(-1,-1),n_erode_dilate);
+    blur(m,m,Size(3,3));
+    threshold(m,m,140,255,1);
+    //erode(m,m,Mat(),Point(-1,-1),n_erode_dilate);
+    //dilate(m,m,Mat(),Point(-1,-1),n_erode_dilate);
     
-    vector< std::vector<cv::Point> > contours;
-	vector<cv::Point> points;
-	findContours(m, contours, RETR_TREE, CHAIN_APPROX_SIMPLE);
+    vector<vector<Point> > contours;
+    vector<Vec4i> hierarchy;
+    vector<cv::Point> points;
+    findContours(m, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE );
 	
-	for (size_t i=0; i<contours.size(); i++) 
-	{
-		for (size_t j = 0; j < contours[i].size(); j++) 
-		{
-			cv::Point p = contours[i][j];
-			points.push_back(p);
-		}
-	}
+    //for (size_t i=0; i<contours.size(); i++) 
+    //{
+	//for (size_t j = 0; j < contours[i].size(); j++) 
+	//{
+	//    Point p = contours[i][j];
+	 //   points.push_back(p);
+	//}
+    //}
+    
+    // iterate through all the top-level contours,
+    // draw each connected component with its own random color
+
+    
+    drawContours( src, contours, -1, color);
+
 	
-	if(points.size() > 0)
-	{
-		Rect brect = boundingRect(Mat(points).reshape(2));
-		rectangle(src, brect.tl(), brect.br(), Scalar(100, 100, 200), 2, LINE_AA);
-	}
+    //if(points.size() > 0)
+    //{
+	//Rect brect = boundingRect(Mat(points).reshape(2));
+	//rectangle(src, brect.tl(), brect.br(), Scalar(100, 100, 200), 2, LINE_AA);
+    //}
   
     dst.create( src.size(), src.type() );
     cvtColor( src, src_gray, COLOR_BGR2GRAY );
