@@ -19,7 +19,7 @@ The artificial whisker geometric profile imitates that of a biological whisker a
 
 Given the dimensions of an artificial whisker, the mechanism must:
 - Include a linear actuator that can draw a 250 mm whisker in approx. 2 mins
-- Acheive a velocity range of 0.01 mm/s - 10 mm/s
+- Achieve a velocity range of 0.01 mm/s - 10 mm/s
 - Include velocity feedback control to regulate the whisker taper
 - Have computer vision to inspect the whisker diameter in micrometers
 
@@ -65,10 +65,10 @@ Next, I used the script `cam_calibration.cpp` to measure the reticle in pixels a
 ## Repository Structure
 
     .
-    ├──cam_calibration.cpp      # Outputs the pixels/mm constant when the calibration slide
+    ├── cam_calibration.cpp      # Outputs the pixels/mm constant when the calibration slide
     ├                             reticle is in view of the camera
-    ├──whisker.cpp              # Velocity control loop
-    ├── media                   # Image files folder
+    ├── whisker.cpp              # Velocity control loop
+    ├── media                    # Image files folder
     └── README.md
 
 ## Installation
