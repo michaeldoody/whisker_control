@@ -1,4 +1,5 @@
 # Whisker Drawing Mechanism
+Check out this proect in my portfolio at https://michaeldoody.github.io/
 ## Project Obectives
 
 The purpose of this project is to design a device that manufactures robotic whisker sensors by drawing polymer plastic filament from an oven. It must be able to inspect the diameter of the whisker and adjust the draw speed accordingly to match a specific geometric profile. This process must be quick and repeatable. 
@@ -37,3 +38,12 @@ Given the dimensions of an artificial whisker, the mechanism must:
 - FLIR ONE Gen 3 Thermal Camera Smart Phone Attachment
 - Microscope Camera Calibration Slide Ruler
 - Low-Friction Tape Made with Teflon
+
+## System Design
+A block diagram of the system is depicted below. The Raspberry Pi controls the velocity of the lead screw linear actuator via the Tic motor controller. A High Quality Raspberry Pi camera is connected to the RasPi. 
+
+![Block Diagram](media/block_diagram.png)
+
+This setup allows the device to perform the following closed control loop. In order to acheive the proper whisker taper, the RasPi is provided a desired whisker diameter and sends the Tic a command to speed up or slow down the motor velocity based on the camera's examination of the whisker.
+
+![Control Loop](media/control_loop.png)
