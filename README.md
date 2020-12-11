@@ -58,7 +58,7 @@ In order to accurately measure the whisker diameter, the camera and lens must be
 
 ![Whisker Calibration](media/whisker_calibration.png)
 
-Next, I used the script `cam_calibration.cpp` to measure the reticle in pixels and calculate pixels/μm (displayed below). This project is still a work in progress, so the next steps are to finish the script `whisker.cpp` which takes this pixels/mm constant, measures the diameter of the whisker directly outside the oven, and performs the velocity control loop.
+Next, I used the script `cam_calibration.cpp` to measure the reticle in pixels and calculate pixels/μm (displayed below). This project is still a work in progress, so the next step is to finish the script `whisker.cpp` which takes the pixels/μm constant, measures the diameter of the whisker section that is directly outside the oven, and performs the velocity control loop.
 
 ![Camera Calibration](media/cam_calibration.png)
 
