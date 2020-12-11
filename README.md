@@ -1,5 +1,5 @@
 # Whisker Drawing Mechanism
-Check out this proect in my portfolio at https://michaeldoody.github.io/
+Check out this project in my portfolio at https://michaeldoody.github.io/
 ## Project Obectives
 
 The purpose of this project is to design a device that manufactures robotic whisker sensors by drawing polymer plastic filament from an oven. It must be able to inspect the diameter of the whisker and adjust the draw speed accordingly to match a specific geometric profile. This process must be quick and repeatable. 
@@ -60,6 +60,24 @@ In order to accurately measure the whisker diameter, the camera and lens must be
 
 Next, I used the script `cam_calibration.cpp` to measure the reticle in pixels and calculate pixels/μm (displayed below). This project is still a work in progress, so the next steps are to finish the script `whisker.cpp` which takes this pixels/mm constant, measures the diameter of the whisker directly outside the oven, and performs the velocity control loop.
 
-
-
 ![Camera Calibration](media/cam_calibration.png)
+
+## Repository Structure
+
+    .
+    ├──cam_calibration.cpp      # Outputs the pixels/mm constant when the calibration slide
+    ├                             reticle is in view of the camera
+    ├──whisker.cpp              # Velocity control loop
+    ├── media                   # Image files folder
+    └── README.md
+
+## Installation
+
+You can clone this GitHub repository: `git clone https://github.com/michaeldoody/whisker_control`
+
+Detailed instuctions for downloading Tic motor controller software and source code can be found here: https://www.pololu.com/docs/0J71/3.2
+
+And instuctions for installing OpenCV on Raspberry Pi are here: https://www.learnopencv.com/install-opencv-4-on-raspberry-pi/
+
+## Links
+Check out this project in my portfolio at https://michaeldoody.github.io/
