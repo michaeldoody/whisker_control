@@ -21,3 +21,19 @@ Given the dimensions of an artificial whisker, the mechanism must:
 - Acheive a velocity range of 0.01 mm/s - 10 mm/s
 - Include velocity feedback control to regulate the whisker taper
 - Have computer vision to inspect the whisker diameter in micrometers
+
+## Materials
+- V-Slot® NEMA 17 Linear Actuator Bundle (Lead Screw), 400m stroke
+- NEMA 17 Stepper Motor
+- Tic 36v4 USB Multi-Interface High-Power Stepper Motor Controller
+- Raspberry Pi 4
+- Raspberry Pi High Quality Camera
+- Monocular Max 300x Zoom C-Mount Glass Lens
+- Microscope Camera Table Stand
+- Adjustable LED Ring Light
+- Electric Warming Tray with Adjustable Temperature Control
+- 24V 4A 100W Power Supply Adapter
+- Cable Assembly 2.1mm ID, 5.5mm OD Jack to Wire Leads
+- FLIR ONE Gen 3 Thermal Camera Smart Phone Attachment
+- Microscope Camera Calibration Slide Ruler
+- Low-Friction Tape Made with Teflon
