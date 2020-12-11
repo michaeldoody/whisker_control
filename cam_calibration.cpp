@@ -79,6 +79,7 @@ int main( int argc, char** argv )
     
     double pixels_per_um = round((height/101 + width/101) * 1000.0 /2) / 1000.0;
     
+    // Display height, width, and pixels per micrometer		  
     cout << "Height: " << height << endl;
     cout << "Width: " << width << endl;
     cout << "Pixels Per Micrometer: " << pixels_per_um << endl;
@@ -92,7 +93,6 @@ int main( int argc, char** argv )
     cvtColor( src, src_gray, COLOR_BGR2GRAY );
     namedWindow( "RasPi Cam", WINDOW_AUTOSIZE );
     imshow("RasPi Cam", src);
-    // Calibrate(0, 0);
 
     if (waitKey(10) == 27)
     {
