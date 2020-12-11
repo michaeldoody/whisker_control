@@ -65,9 +65,9 @@ Next, I used the script `cam_calibration.cpp` to measure the reticle in pixels a
 ## Repository Structure
 
     .
-    ├── cam_calibration.cpp      # Outputs the pixels/mm constant when the calibration slide
+    ├── cam_calibration.cpp      # Outputs the pixels/μm constant when the calibration slide
     ├                             reticle is in view of the camera
-    ├── whisker.cpp              # Velocity control loop
+    ├── whisker.cpp              # Velocity control loop (WIP)
     ├── media                    # Image files folder
     └── README.md
 
