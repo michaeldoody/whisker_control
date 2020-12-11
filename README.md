@@ -1,6 +1,6 @@
 # Whisker Drawing Mechanism
 Check out this project in my portfolio at https://michaeldoody.github.io/
-## Project Obectives
+## Project Objectives
 
 The purpose of this project is to design a device that manufactures robotic whisker sensors by drawing polymer plastic filament from an oven. It must be able to inspect the diameter of the whisker and adjust the draw speed accordingly to match a specific geometric profile. This process must be quick and repeatable. 
 
@@ -15,7 +15,7 @@ The artificial whisker geometric profile imitates that of a biological whisker a
 
 ![Whisker Profile](media/whisker_geometry.png)
 
-## Design Specs
+## Design Specifications
 
 Given the dimensions of an artificial whisker, the mechanism must:
 - Include a linear actuator that can draw a 250 mm whisker in approx. 2 mins
