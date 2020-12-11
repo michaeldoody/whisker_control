@@ -1,4 +1,5 @@
 # Whisker Drawing Mechanism
+Check out this project in my portfolio at https://michaeldoody.github.io/
 ## Project Obectives
 
 The purpose of this project is to design a device that manufactures robotic whisker sensors by drawing polymer plastic filament from an oven. It must be able to inspect the diameter of the whisker and adjust the draw speed accordingly to match a specific geometric profile. This process must be quick and repeatable. 
@@ -37,3 +38,46 @@ Given the dimensions of an artificial whisker, the mechanism must:
 - FLIR ONE Gen 3 Thermal Camera Smart Phone Attachment
 - Microscope Camera Calibration Slide Ruler
 - Low-Friction Tape Made with Teflon
+
+## System Design
+A block diagram of the system is depicted below. The Raspberry Pi controls the velocity of the lead screw linear actuator via the Tic motor controller. A High Quality Raspberry Pi camera is connected to the RasPi. 
+
+![Block Diagram](media/block_diagram.png)
+
+This setup allows the device to perform the following closed control loop. In order to acheive the proper whisker taper, the RasPi is provided a desired whisker diameter and sends the Tic a command to speed up or slow down the motor velocity based on the camera's examination of the whisker.
+
+![Control Loop](media/control_loop.png)
+
+The finished setup looks like this:
+
+![Setup Labeled](media/setup_labeled.png)
+
+## Computer Vision
+
+In order to accurately measure the whisker diameter, the camera and lens must be first focused on a calibration slide's  1mm x 1mm reticle stacked on top of a sample of the plastic filament.
+
+![Whisker Calibration](media/whisker_calibration.png)
+
+Next, I used the script `cam_calibration.cpp` to measure the reticle in pixels and calculate pixels/μm (displayed below). This project is still a work in progress, so the next steps are to finish the script `whisker.cpp` which takes this pixels/mm constant, measures the diameter of the whisker directly outside the oven, and performs the velocity control loop.
+
+![Camera Calibration](media/cam_calibration.png)
+
+## Repository Structure
+
+    .
+    ├──cam_calibration.cpp      # Outputs the pixels/mm constant when the calibration slide
+    ├                             reticle is in view of the camera
+    ├──whisker.cpp              # Velocity control loop
+    ├── media                   # Image files folder
+    └── README.md
+
+## Installation
+
+You can clone this GitHub repository: `git clone https://github.com/michaeldoody/whisker_control`
+
+Detailed instuctions for downloading Tic motor controller software and source code can be found here: https://www.pololu.com/docs/0J71/3.2
+
+And instuctions for installing OpenCV on Raspberry Pi are here: https://www.learnopencv.com/install-opencv-4-on-raspberry-pi/
+
+## Links
+Check out this project in my portfolio at https://michaeldoody.github.io/
