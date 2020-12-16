@@ -125,6 +125,7 @@ int main( int argc, char** argv )
     
     double pixels_per_um = round((height/101 + width/101) * 1000.0 /2) / 1000.0;
     
+    // Display height, width, and pixels per micrometer		  
     cout << "Height: " << height << endl;
     cout << "Width: " << width << endl;
     cout << "Pixels Per Micrometer: " << pixels_per_um << endl;
@@ -138,7 +139,17 @@ int main( int argc, char** argv )
     cvtColor( src, src_gray, COLOR_BGR2GRAY );
     namedWindow( "RasPi Cam", WINDOW_AUTOSIZE );
     imshow("RasPi Cam", src);
+<<<<<<< HEAD
     
     waitKey(0);
     return 0;
+=======
+
+    if (waitKey(10) == 27)
+    {
+      cout << "Esc key is pressed by user. Stoppig the video" << endl;
+      break;
+    }
+  }
+>>>>>>> 36b69fe4cac0caa0f808fd85954625cc25fe7333
 }
