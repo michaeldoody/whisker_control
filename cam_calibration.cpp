@@ -16,25 +16,11 @@ Mat dst, detected_edges;
 Mat cdst, cdstP;
 
 int lowThreshold = 8;
-const int max_lowThreshold = 100;
-double n_threshold = 128;
+const int max_lowThreshold = 255;
 int n_erode_dilate = 1;
 const int kernel_size = 3;
 
 string img_name = "whisker.jpg";
-
-string datetime()
-{
-    time_t rawtime;
-    struct tm * timeinfo;
-    char buffer[80];
-
-    time (&rawtime);
-    timeinfo = localtime(&rawtime);
-
-    strftime(buffer,80,"cam_cal%d%m%Y_%H%M%S",timeinfo);
-    return buffer;
-}
 
 int main( int argc, char** argv )
 {
@@ -59,7 +45,9 @@ int main( int argc, char** argv )
 	cout << "Could not open video stream!\n" << endl;
 	}
     
-    
+	namedWindow( "Whisker Calibration", WINDOW_AUTOSIZE );
+	imshow("Whisker Calibration", src);
+	
 	int key = waitKey(5);
     
 	// Save image if Space or S key is pressed
@@ -79,7 +67,7 @@ int main( int argc, char** argv )
     }
   
     // Read captured image
-    Mat img = imread(img_name, 1);
+    Mat img = imread("whisker.jpg", 1);
   
     // Select ROI
     Rect2d rect = selectROI(img);
@@ -91,7 +79,7 @@ int main( int argc, char** argv )
     int largest_contour_index=0;
     Rect bounding_rect;
     
-    Mat m = src.clone();
+    Mat m = imgCrop.clone();
     cvtColor(m,m,COLOR_BGR2GRAY);
     blur(m,m,Size(3,3));
     Canny(m, m, lowThreshold, lowThreshold*3, kernel_size );
@@ -118,7 +106,6 @@ int main( int argc, char** argv )
 	}
     }
     
-    
     // Calculate pixels per micrometer
     double height = bounding_rect.height;
     double width = bounding_rect.width;
@@ -132,24 +119,25 @@ int main( int argc, char** argv )
     cout << "\n\n" << endl;
 
     // Outline the calibration crosshairs and draw a rectangle around it
-    //drawContours( src, contours, largest_contour_index, Scalar( 0, 255, 0 ), 1);
-    //rectangle(src, bounding_rect.tl(), bounding_rect.br(), Scalar(100, 100, 200), 2, LINE_AA);
+    drawContours( imgCrop, contours, largest_contour_index, Scalar( 0, 255, 0 ), 1);
+    rectangle(imgCrop, bounding_rect.tl(), bounding_rect.br(), Scalar(100, 100, 200), 2, LINE_AA);
   
     dst.create( src.size(), src.type() );
     cvtColor( src, src_gray, COLOR_BGR2GRAY );
-    namedWindow( "RasPi Cam", WINDOW_AUTOSIZE );
-    imshow("RasPi Cam", src);
-<<<<<<< HEAD
+    namedWindow( "Cropped Whisker Calibration", WINDOW_AUTOSIZE );
+    imshow("Cropped Whisker Calibration", imgCrop);
     
-    waitKey(0);
-    return 0;
-=======
-
-    if (waitKey(10) == 27)
+    cout << "Press Space or S to save calibration measurement" << endl;
+    int key = waitKey(0);
+    
+    // Save pixels_per_um to txt file if Space or S key is pressed
+    if (key == 32 || key == 115)
     {
-      cout << "Esc key is pressed by user. Stoppig the video" << endl;
-      break;
+	ofstream myfile;
+	myfile.open ("ppum.txt");
+	myfile << to_string(pixels_per_um);
+	myfile.close();
     }
-  }
->>>>>>> 36b69fe4cac0caa0f808fd85954625cc25fe7333
+    
+    return 0;
 }

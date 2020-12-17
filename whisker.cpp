@@ -94,7 +94,7 @@ static void WhiskerDiameter(int, void*)
     dist1 = ptHigh1.y - ptLow1.y;
     dist2 = ptHigh2.y - ptLow2.y;
     avgDist = (dist1 + dist2) / 2;
-    cout << "Whisker Diameter in pixels:  " << avgDist << endl;
+    //cout << "Whisker Diameter in pixels:  " << avgDist << endl;
     Point avg1, avg2;
     avg1.x = 325;
     avg1.y = abs(ptLow2.y - ptLow1.y)/2 + min(ptLow1.y, ptLow2.y);
@@ -109,16 +109,23 @@ static void WhiskerDiameter(int, void*)
 
 int main( int argc, char** argv )
 {
-  //open the video file for reading
-  VideoCapture cap(0); 
+    //open the video file for reading
+    VideoCapture cap(0); 
   
-  // if not success, exit program
-  if (cap.isOpened() == false)  
-  {
-    cout << "Cannot open the camera" << endl;
-    cin.get(); //wait for any key press
-    return -1;
-  }
+    // if not success, exit program
+    if (cap.isOpened() == false)  
+    {
+        cout << "Cannot open the camera" << endl;
+        cin.get(); //wait for any key press
+        return -1;
+    }
+    
+    // Retrieve pixels per micrometer from whiskers.txt 
+    string ppum_text;
+    ifstream infile;
+    infile.open ("ppum.txt");
+    getline(infile, ppum_text); // Saves the text file line
+	infile.close();
   
   while (true)
   {
