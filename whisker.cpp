@@ -13,9 +13,8 @@ Mat cdst, cdstP;
 
 double ppum;
 
-int lowThreshold = 8;
-const int max_lowThreshold = 100;
-double n_threshold = 128;
+int lowThreshold = 7;
+const int max_lowThreshold = 210;
 int n_erode_dilate = 1;
 const int kernel_size = 3;
 
@@ -132,27 +131,27 @@ int main( int argc, char** argv )
     
     ppum = atof(ppum_text.c_str());
   
-  while (true)
-  {
-    bool bSuccess = cap.read(src); // read a new frame from video 
-
-    // Break the while loop if there is no video
-    if (bSuccess == false) 
+    while (true)
     {
-      cout << "Could not open video stream!\n" << endl;
-      return -1;
-    }
+        bool bSuccess = cap.read(src); // read a new frame from video 
+
+        // Break the while loop if there is no video
+        if (bSuccess == false) 
+        {
+            cout << "Could not open video stream!\n" << endl;
+            return -1;
+        }
     
-    dst.create( src.size(), src.type() );
-    cvtColor( src, src_gray, COLOR_BGR2GRAY );
-    namedWindow( "RasPi Cam", WINDOW_AUTOSIZE );
-    imshow("RasPi Cam", src);
-    WhiskerDiameter(0, 0);
+        dst.create( src.size(), src.type() );
+        cvtColor( src, src_gray, COLOR_BGR2GRAY );
+        namedWindow( "RasPi Cam", WINDOW_AUTOSIZE );
+        imshow("RasPi Cam", src);
+        WhiskerDiameter(0, 0);
 
-    if (waitKey(10) == 27)
-    {
-      cout << "Esc key is pressed by user. Stoppig the video" << endl;
-      break;
+        if (waitKey(10) == 27)
+        {
+            cout << "Esc key is pressed by user. Stoppig the video" << endl;
+            break;
+        }
     }
-  }
 }

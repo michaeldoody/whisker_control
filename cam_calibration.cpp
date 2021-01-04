@@ -110,7 +110,7 @@ int main( int argc, char** argv )
     double height = bounding_rect.height;
     double width = bounding_rect.width;
     
-    double pixels_per_um = round((height/101 + width/101) * 1000.0 /2) / 1000.0;
+    double pixels_per_um = round((height/101.0 + width/101.0) * 1000.0 /2) / 10000.0;
     
     // Display height, width, and pixels per micrometer		  
     cout << "Height: " << height << endl;
