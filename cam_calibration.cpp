@@ -133,10 +133,10 @@ int main( int argc, char** argv )
     // Save pixels_per_um to txt file if Space or S key is pressed
     if (key == 32 || key == 115)
     {
-	ofstream myfile;
-	myfile.open ("ppum.txt");
-	myfile << to_string(pixels_per_um);
-	myfile.close();
+	    ofstream myfile;
+    	myfile.open ("ppum.txt");
+	    myfile << to_string(pixels_per_um);
+	    myfile.close();
     }
     
     return 0;

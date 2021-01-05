@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <math.h>
+#include <unistd.h>
 
 using namespace cv;
 using namespace std;
@@ -109,6 +110,19 @@ static void WhiskerDiameter(int, void*)
     imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
 }
 
+string datetime()	
+{	
+    time_t rawtime;	
+    struct tm * timeinfo;	
+    char buffer[80];	
+
+    time (&rawtime);	
+    timeinfo = localtime(&rawtime);	
+
+    strftime(buffer,80,"data%d%m%Y_%H%M%S",timeinfo);	
+    return buffer;	
+}
+
 int main( int argc, char** argv )
 {
     //open the video file for reading
@@ -130,7 +144,18 @@ int main( int argc, char** argv )
 	infile.close();
     
     ppum = atof(ppum_text.c_str());
-  
+
+    // Create a csv file for whisker drawing data
+    string filename = datetime() + ".csv";
+    std::ofstream dataFile(filename);
+    
+    dataFile << "New file" << endl;
+    dataFile << "1" << endl;
+    dataFile << "2" << endl;
+    dataFile << "3" << endl;
+    
+
+	
     while (true)
     {
         bool bSuccess = cap.read(src); // read a new frame from video 
