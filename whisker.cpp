@@ -1,6 +1,7 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include <opencv2/opencv.hpp>
+#include "tic/include/tic.hpp"
 #include <iostream>
 #include <math.h>
 #include <unistd.h>
@@ -15,6 +16,7 @@ Mat dst, detected_edges, dilated;
 Mat cdst, cdstP;
 
 double um, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
+int motorVel = 10000;
 
 int lowThreshold = 7;
 const int max_lowThreshold = 210;
@@ -112,6 +114,35 @@ static void WhiskerDiameter(int, void*)
     imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
 }
 
+// Opens a handle to a Tic that can be used for communication.
+//
+// To open a handle to any Tic:
+//   tic_handle * handle = open_handle();
+// To open a handle to the Tic with serial number 01234567:
+//   tic_handle * handle = open_handle("01234567");
+tic::handle open_handle(const char * desired_serial_number = nullptr)
+{
+  // Get a list of Tic devices connected via USB.
+  std::vector<tic::device> list = tic::list_connected_devices();
+ 
+  // Iterate through the list and select one device.
+  for (const tic::device & device : list)
+  {
+    if (desired_serial_number &&
+      device.get_serial_number() != desired_serial_number)
+    {
+      // Found a device with the wrong serial number, so continue on to
+      // the next device in the list.
+      continue;
+    }
+ 
+    // Open a handle to this device and return it.
+    return tic::handle(device);
+  }
+ 
+  throw std::runtime_error("No device found.");
+}
+
 string datetime()	
 {	
     time_t rawtime;	
@@ -127,6 +158,31 @@ string datetime()
 
 int main( int argc, char** argv )
 {
+	
+	try
+	{
+		tic::handle handle = open_handle();
+ 
+		tic::variables vars = handle.get_variables();
+ 
+		int32_t position = vars.get_current_position();
+		std::cout << "Current position is " << position << ".\n";
+ 
+		int32_t new_target_vel = -2500000;
+		std::cout << "Setting target velocity to " << new_target_vel << ".\n";
+ 
+		handle.exit_safe_start();
+		handle.set_target_velocity(new_target_vel);
+		waitKey(0);
+		handle.set_target_velocity(0);
+	}
+	catch (const std::exception & error)
+	{
+		std::cerr << "Error: " << error.what() << std::endl;
+		return 1;
+	}
+	
+	
     //open the video file for reading
     VideoCapture cap(0); 
   
@@ -155,8 +211,10 @@ int main( int argc, char** argv )
     dataFile << "Time(ms)" << "," << "WhiskerDiameter(um)" << "," << "MotorVelocity" << endl;
 	
 	auto timeStart = std::chrono::high_resolution_clock::now();
+	auto timeCurrent = std::chrono::high_resolution_clock::now();
+    auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
     
-    while (true)
+    while (timeDiff < 120000) // stop after 2 mins 
     {
         bool bSuccess = cap.read(src); // read a new frame from video 
 
@@ -174,7 +232,7 @@ int main( int argc, char** argv )
         WhiskerDiameter(0, 0);
         
         auto timeCurrent = std::chrono::high_resolution_clock::now();
-        auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
+        timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
         
         // Write data to file
 		dataFile << timeDiff << "," << um << "," << 20 << endl;
