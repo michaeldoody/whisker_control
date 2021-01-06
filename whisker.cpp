@@ -16,7 +16,7 @@ Mat dst, detected_edges, dilated;
 Mat cdst, cdstP;
 
 double um, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
-int motorVel = 10000;
+int32_t motorPos, motorVel;
 
 int lowThreshold = 7;
 const int max_lowThreshold = 210;
@@ -158,30 +158,29 @@ string datetime()
 
 int main( int argc, char** argv )
 {
+	tic::handle handle;
+	tic::variables vars;
 	
 	try
 	{
-		tic::handle handle = open_handle();
+		handle = open_handle();
  
-		tic::variables vars = handle.get_variables();
+		vars = handle.get_variables();
  
-		int32_t position = vars.get_current_position();
-		std::cout << "Current position is " << position << ".\n";
+		motorPos = vars.get_current_position();
+		std::cout << "Current position is " << motorPos << endl;
  
-		int32_t new_target_vel = -2500000;
-		std::cout << "Setting target velocity to " << new_target_vel << ".\n";
+		motorVel = 0;
+		std::cout << "Setting target velocity to " << motorVel << endl;
  
 		handle.exit_safe_start();
-		handle.set_target_velocity(new_target_vel);
-		waitKey(0);
-		handle.set_target_velocity(0);
+		handle.set_target_velocity(motorVel);
 	}
 	catch (const std::exception & error)
 	{
 		std::cerr << "Error: " << error.what() << std::endl;
 		return 1;
 	}
-	
 	
     //open the video file for reading
     VideoCapture cap(0); 
@@ -204,17 +203,17 @@ int main( int argc, char** argv )
     ppum = atof(ppum_text.c_str());
 
     // Create a csv file for whisker drawing data
-    string filename = datetime() + ".csv";
+    string filename = "data/" + datetime() + ".csv";
     std::ofstream dataFile(filename);
     
     // Write the data file column headers
-    dataFile << "Time(ms)" << "," << "WhiskerDiameter(um)" << "," << "MotorVelocity" << endl;
+    dataFile << "Time(ms)" << "," << "WhiskerDiameter(um)" << "," << "ActuatorVelocity(mm/s)" << endl;
 	
 	auto timeStart = std::chrono::high_resolution_clock::now();
 	auto timeCurrent = std::chrono::high_resolution_clock::now();
     auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
     
-    while (timeDiff < 120000) // stop after 2 mins 
+    while (timeDiff < 120000 || motorPos < -12000) // stop after 2 mins or when actuator reaches end of track
     {
         bool bSuccess = cap.read(src); // read a new frame from video 
 
@@ -234,16 +233,29 @@ int main( int argc, char** argv )
         auto timeCurrent = std::chrono::high_resolution_clock::now();
         timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
         
-        // Write data to file
-		dataFile << timeDiff << "," << um << "," << 20 << endl;
+        // Motor velocity equation
+        motorVel = 83.25*timeDiff + 10000;
+        double linearVel = motorVel/1000000.0;
+        motorVel = (int)motorVel;
+        cout << "Setting target velocity to " << motorVel << endl;
+        motorPos = vars.get_current_position();
+        std::cout << "Current position is " << motorPos << endl;
+        handle.exit_safe_start();
+		handle.set_target_velocity(-motorVel);
+       
+        
+        // Write timestamp, whisker diameter, and actuator linear velocity to csv file
+		dataFile << timeDiff << "," << um << "," << linearVel << endl;
 
         if (waitKey(100) == 27)
         {
-            cout << "Esc key is pressed by user. Stoppig the video" << endl;
+            cout << "Esc key is pressed by user. Stopping the video" << endl;
+            handle.set_target_velocity(0);
             break;
         }
     }
     
+    handle.set_target_velocity(0);
     dataFile.close();
     return 0;
 }
