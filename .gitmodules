@@ -1,0 +1,3 @@
+[submodule "pololu-tic-software"]
+	path = pololu-tic-software
+	url = https://github.com/pololu/pololu-tic-software.git
