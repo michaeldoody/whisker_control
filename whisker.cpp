@@ -4,15 +4,17 @@
 #include <iostream>
 #include <math.h>
 #include <unistd.h>
+#include <chrono>
 
 using namespace cv;
 using namespace std;
+using namespace std::chrono;
 
 Mat src, src_gray;
 Mat dst, detected_edges, dilated;
 Mat cdst, cdstP;
 
-double ppum;
+double um, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 
 int lowThreshold = 7;
 const int max_lowThreshold = 210;
@@ -149,13 +151,11 @@ int main( int argc, char** argv )
     string filename = datetime() + ".csv";
     std::ofstream dataFile(filename);
     
-    dataFile << "New file" << endl;
-    dataFile << "1" << endl;
-    dataFile << "2" << endl;
-    dataFile << "3" << endl;
-    
-
+    // Write the data file column headers
+    dataFile << "Time(ms)" << "," << "WhiskerDiameter(um)" << "," << "MotorVelocity" << endl;
 	
+	auto timeStart = std::chrono::high_resolution_clock::now();
+    
     while (true)
     {
         bool bSuccess = cap.read(src); // read a new frame from video 
@@ -172,11 +172,20 @@ int main( int argc, char** argv )
         namedWindow( "RasPi Cam", WINDOW_AUTOSIZE );
         imshow("RasPi Cam", src);
         WhiskerDiameter(0, 0);
+        
+        auto timeCurrent = std::chrono::high_resolution_clock::now();
+        auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
+        
+        // Write data to file
+		dataFile << timeDiff << "," << um << "," << 20 << endl;
 
-        if (waitKey(10) == 27)
+        if (waitKey(100) == 27)
         {
             cout << "Esc key is pressed by user. Stoppig the video" << endl;
             break;
         }
     }
+    
+    dataFile.close();
+    return 0;
 }
