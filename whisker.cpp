@@ -47,15 +47,20 @@ static void WhiskerDiameter(int, void*)
     int lowest = 100000;
     
     // Set default line positions
-    Point ptHigh1, ptHigh2, ptLow1, ptLow2;
-    ptHigh1.x = 0;
-    ptHigh1.y = 480;
-    ptHigh2.x = 650;
-    ptHigh2.y = 480;
-    ptLow1.x = 0;
-    ptLow1.y = 0;
-    ptLow2.x = 650;
-    ptLow2.y = 0;
+    Point tA, tB, tC, bA, bB, bC; // t = top line, b = bottom line 
+    tA.x = 0;
+    tA.y = 480;
+    tC.x = 650;
+    tC.y = 480;
+    bA.x = 0;
+    bA.y = 0;
+    bC.x = 650;
+    bC.y = 0;
+    
+    // variables for the top whisker edge
+    float rhoT, thetaT;
+    float vX, vY;
+    double aT, bT, xT, yT;
     
     // Select the uppermost and bottommost lines
     for( size_t i = 0; i < lines.size(); i++ )
@@ -74,28 +79,87 @@ static void WhiskerDiameter(int, void*)
         if (avgHeight > highest && pt1.x < 400)
         {
             highest = avgHeight;
-            ptHigh1.x = pt1.x;
-            ptHigh1.y = pt1.y;
-            ptHigh2.x = pt2.x;
-            ptHigh2.y = pt2.y;
+            tA.x = pt1.x;
+            tA.y = pt1.y;
+            tC.x = pt2.x;
+            tC.y = pt2.y;
+            
+            rhoT = rho;
+            thetaT = theta;
+            aT = a;
+            bT = b;
+            xT = x0;
+            yT = y0;
             
         }
         else if (avgHeight < lowest && pt1.x < 400)
         {
             lowest = avgHeight;
-            ptLow1.x = pt1.x;
-            ptLow1.y = pt1.y;
-            ptLow2.x = pt2.x;
-            ptLow2.y = pt2.y;
+            bA.x = pt1.x;
+            bA.y = pt1.y;
+            bC.x = pt2.x;
+            bC.y = pt2.y;
         }
     }
     
+    // Draw the two whisker edges
+    line( cdst, tA, tC, Scalar(0,0,255), 2, LINE_AA);
+    line( cdst, bA, bC, Scalar(0,0,255), 2, LINE_AA);
     
-    // Draw the two lines
-    line( cdst, ptHigh1, ptHigh2, Scalar(0,0,255), 2, LINE_AA);
-    line( cdst, ptLow1, ptLow2, Scalar(0,0,255), 2, LINE_AA);
+        for(int w = 100; w < 600; w += 100)
+    {
+	    //tA.x = cvRound(x0 + w*(-b));
+	    //tA.y = cvRound(y0 + w*(a));
+	    //tB.x = cvRound(x0 - w*(-b));
+	    //tB.y = cvRound(y0 - w*(a));
+	    
+	    // Get the direction vector going from A to B
+	    vX = (float)(tB.x - tA.x);
+	    vY = (float)(tB.y - tA.y);
+	    
+	    // Normalize the vector
+	    float mag = sqrt(vX*vX + vY*vY);
+	    vX = vX / mag;
+	    vY = vY / mag;
+	    
+		// Rotate the vector 90 degrees
+		float temp = vX;
+		vX = -vY;
+		vY = temp;
+		
+		// Create perpendicular line
+		bB.x = tB.x + vX*100;
+		bB.y = tB.y + vY*100;
+		
+		// Line bAbC represented as a1x + b1y = c1
+		double a1 = bC.y - bA.y;
+		double b1 = bA.x - bC.x;
+		double c1 = a1*bA.x + b1*bA.y;
+		
+		// Line tBbB represented as a2x + b2y = c2
+		double a2 = bB.y - tB.y;
+		double b2 = tB.x - bB.x;
+		double c2 = a2*tB.x + b2*tB.y;
+		
+		double determinant = a1*b2 - a2*b1;
+		
+		bB.x = (b2*c1 - b1*c2)/determinant; 
+	    bB.y = (a1*c2 - a2*c1)/determinant;
+		
+		// Create perpendicular line
+	    line( cdst, tB, bB, Scalar(0,255,0), 3, LINE_AA);
+	    
+		double xLength = bB.x - tB.x;
+		double yLength = bB.y - tB.y;
+		double lineLength = sqrt(xLength*xLength + yLength*yLength);
+		
+		cout << lineLength << endl;
+    }
+    
+    
     
     // Average distance between the lines
+    /*
     int dist1, dist2, avgDist;
     dist1 = ptHigh1.y - ptLow1.y;
     dist2 = ptHigh2.y - ptLow2.y;
@@ -109,6 +173,7 @@ static void WhiskerDiameter(int, void*)
     avg2.y = avg1.y + avgDist;
     
     line( cdst, avg1, avg2, Scalar(0,255,0), 2, LINE_AA);
+    */
 
     
     imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
@@ -239,9 +304,9 @@ int main( int argc, char** argv )
         motorVel = (int)motorVel;
         cout << "Setting target velocity to " << motorVel << endl;
         motorPos = vars.get_current_position();
-        std::cout << "Current position is " << motorPos << endl;
-        handle.exit_safe_start();
-		handle.set_target_velocity(-motorVel);
+        cout << "Current position is " << motorPos << endl;
+        //handle.exit_safe_start();
+		//handle.set_target_velocity(-motorVel);
        
         
         // Write timestamp, whisker diameter, and actuator linear velocity to csv file
@@ -250,12 +315,12 @@ int main( int argc, char** argv )
         if (waitKey(100) == 27)
         {
             cout << "Esc key is pressed by user. Stopping the video" << endl;
-            handle.set_target_velocity(0);
+            //handle.set_target_velocity(0);
             break;
         }
     }
     
-    handle.set_target_velocity(0);
+    //handle.set_target_velocity(0);
     dataFile.close();
     return 0;
 }
