@@ -1,7 +1,7 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include <opencv2/opencv.hpp>
-#include "tic/include/tic.hpp"
+#include "tic.hpp"
 #include <iostream>
 #include <math.h>
 #include <unistd.h>
@@ -11,24 +11,24 @@ using namespace cv;
 using namespace std;
 using namespace std::chrono;
 
-Mat src, src_gray;
+Mat src, src_gray, blur_gray;
 Mat dst, detected_edges, dilated;
 Mat cdst, cdstP;
 
 double um, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 int32_t motorPos, motorVel;
 
-int lowThreshold = 7;
-const int max_lowThreshold = 210;
+int lowThreshold = 210;
 int n_erode_dilate = 1;
-const int kernel_size = 3;
+const int kernel_size = 5;
 
 static void WhiskerDiameter(int, void*)
 {
     Mat m = src.clone();
     
-    blur( src_gray, detected_edges, Size(3,3) );
-    Canny( detected_edges, detected_edges, lowThreshold, lowThreshold*3, kernel_size );
+    //blur( src_gray, detected_edges, Size(3,3) );
+    GaussianBlur(src_gray, blur_gray, Size(kernel_size, kernel_size), 0, 0);
+    Canny(blur_gray, detected_edges, lowThreshold, lowThreshold*3, kernel_size );
     dilate(detected_edges, dilated, Mat(), Point(-1,-1), n_erode_dilate);
     erode(dilated, dilated, Mat(), Point(-1,-1), n_erode_dilate);
     dst = Scalar::all(0);
@@ -41,6 +41,23 @@ static void WhiskerDiameter(int, void*)
     // Standard Hough Line Transform
     vector<Vec2f> lines; // will hold the results of the detection
     HoughLines(dilated, lines, 1, CV_PI/180, 150, 0, 0 ); // runs the actual detection
+    
+    // Draw the lines
+    for( size_t i = 0; i < lines.size(); i++ )
+    {
+        float rho = lines[i][0], theta = lines[i][1];
+        Point pt1, pt2;
+        double a = cos(theta), b = sin(theta);
+        double x0 = a*rho, y0 = b*rho;
+        pt1.x = cvRound(x0 + 1000*(-b));
+        pt1.y = cvRound(y0 + 1000*(a));
+        pt2.x = cvRound(x0 - 1000*(-b));
+        pt2.y = cvRound(y0 - 1000*(a));
+        line( cdst, pt1, pt2, Scalar(0,0,255), 2, LINE_AA);
+    }
+    cout << "# of Lines:  " << lines.size() << endl;
+    
+    
     
 
     int highest = -100000;
@@ -103,10 +120,10 @@ static void WhiskerDiameter(int, void*)
     }
     
     // Draw the two whisker edges
-    line( cdst, tA, tC, Scalar(0,0,255), 2, LINE_AA);
-    line( cdst, bA, bC, Scalar(0,0,255), 2, LINE_AA);
+    //line( cdst, tA, tC, Scalar(0,0,255), 2, LINE_AA);
+    //line( cdst, bA, bC, Scalar(0,0,255), 2, LINE_AA);
     
-        for(int w = 100; w < 600; w += 100)
+    for(int w = 100; w < 600; w += 100)
     {
 	    //tA.x = cvRound(x0 + w*(-b));
 	    //tA.y = cvRound(y0 + w*(a));
@@ -147,7 +164,7 @@ static void WhiskerDiameter(int, void*)
 	    bB.y = (a1*c2 - a2*c1)/determinant;
 		
 		// Create perpendicular line
-	    line( cdst, tB, bB, Scalar(0,255,0), 3, LINE_AA);
+	    line( cdst, tB, bB, Scalar(0,255,0), 2, LINE_AA);
 	    
 		double xLength = bB.x - tB.x;
 		double yLength = bB.y - tB.y;
@@ -278,7 +295,7 @@ int main( int argc, char** argv )
 	auto timeCurrent = std::chrono::high_resolution_clock::now();
     auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
     
-    while (timeDiff < 120000 || motorPos < -12000) // stop after 2 mins or when actuator reaches end of track
+    while (timeDiff < 120000) // stop after 2 mins or when actuator reaches end of track
     {
         bool bSuccess = cap.read(src); // read a new frame from video 
 
