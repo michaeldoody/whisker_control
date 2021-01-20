@@ -26,7 +26,6 @@ static void WhiskerDiameter(int, void*)
 {
     Mat m = src.clone();
     
-    //blur( src_gray, detected_edges, Size(3,3) );
     GaussianBlur(src_gray, blur_gray, Size(kernel_size, kernel_size), 0, 0);
     Canny(blur_gray, detected_edges, lowThreshold, lowThreshold*3, kernel_size );
     dilate(detected_edges, dilated, Mat(), Point(-1,-1), n_erode_dilate);
@@ -42,7 +41,8 @@ static void WhiskerDiameter(int, void*)
     vector<Vec2f> lines; // will hold the results of the detection
     HoughLines(dilated, lines, 1, CV_PI/180, 150, 0, 0 ); // runs the actual detection
     
-    // Draw the lines
+    /*
+    // Draw all Hough lines
     for( size_t i = 0; i < lines.size(); i++ )
     {
         float rho = lines[i][0], theta = lines[i][1];
@@ -56,9 +56,7 @@ static void WhiskerDiameter(int, void*)
         line( cdst, pt1, pt2, Scalar(0,0,255), 2, LINE_AA);
     }
     cout << "# of Lines:  " << lines.size() << endl;
-    
-    
-    
+    */
 
     int highest = -100000;
     int lowest = 100000;
@@ -101,13 +99,6 @@ static void WhiskerDiameter(int, void*)
             tC.x = pt2.x;
             tC.y = pt2.y;
             
-            rhoT = rho;
-            thetaT = theta;
-            aT = a;
-            bT = b;
-            xT = x0;
-            yT = y0;
-            
         }
         else if (avgHeight < lowest && pt1.x < 400)
         {
@@ -116,20 +107,22 @@ static void WhiskerDiameter(int, void*)
             bA.y = pt1.y;
             bC.x = pt2.x;
             bC.y = pt2.y;
+            
+            rhoT = rho;
+            thetaT = theta;
+            aT = a;
+            bT = b;
+            xT = x0;
+            yT = y0;
         }
     }
     
     // Draw the two whisker edges
-    //line( cdst, tA, tC, Scalar(0,0,255), 2, LINE_AA);
-    //line( cdst, bA, bC, Scalar(0,0,255), 2, LINE_AA);
+    line( cdst, tA, tC, Scalar(0,0,255), 2, LINE_AA);
+    line( cdst, bA, bC, Scalar(0,0,255), 2, LINE_AA);
     
     for(int w = 100; w < 600; w += 100)
     {
-	    //tA.x = cvRound(x0 + w*(-b));
-	    //tA.y = cvRound(y0 + w*(a));
-	    //tB.x = cvRound(x0 - w*(-b));
-	    //tB.y = cvRound(y0 - w*(a));
-	    
 	    // Get the direction vector going from A to B
 	    vX = (float)(tB.x - tA.x);
 	    vY = (float)(tB.y - tA.y);
