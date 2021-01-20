@@ -41,142 +41,132 @@ static void WhiskerDiameter(int, void*)
     vector<Vec2f> lines; // will hold the results of the detection
     HoughLines(dilated, lines, 1, CV_PI/180, 150, 0, 0 ); // runs the actual detection
     
-    /*
-    // Draw all Hough lines
-    for( size_t i = 0; i < lines.size(); i++ )
+    
+    if (lines.size() < 2) // Whisker isn't in full view
     {
-        float rho = lines[i][0], theta = lines[i][1];
-        Point pt1, pt2;
-        double a = cos(theta), b = sin(theta);
-        double x0 = a*rho, y0 = b*rho;
-        pt1.x = cvRound(x0 + 1000*(-b));
-        pt1.y = cvRound(y0 + 1000*(a));
-        pt2.x = cvRound(x0 - 1000*(-b));
-        pt2.y = cvRound(y0 - 1000*(a));
-        line( cdst, pt1, pt2, Scalar(0,0,255), 2, LINE_AA);
+        cout << "Whisker is not centered / in view of camera" << endl;
     }
-    cout << "# of Lines:  " << lines.size() << endl;
-    */
-
-    int highest = -100000;
-    int lowest = 100000;
-    
-    // Set default line positions
-    Point tA, tB, tC, bA, bB, bC; // t = top line, b = bottom line 
-    tA.x = 0;
-    tA.y = 0;
-    tC.x = 650;
-    tC.y = 0;
-    bA.x = 0;
-    bA.y = 480;
-    bC.x = 650;
-    bC.y = 480;
-
-    
-    // variables for the top whisker edge
-    double aT, bT, xT, yT;
-    
-    // Select the uppermost and bottommost lines
-    for( size_t i = 0; i < lines.size(); i++ )
+    else
     {
-        float rho = lines[i][0], theta = lines[i][1];
-        Point pt1, pt2;
-        double a = cos(theta), b = sin(theta);
-        double x0 = a*rho, y0 = b*rho;
-        pt1.x = cvRound(x0 + 650*(-b));
-        pt1.y = cvRound(y0 + 650*(a));
-        pt2.x = cvRound(x0 - 650*(-b));
-        pt2.y = cvRound(y0 - 650*(a));
+        int highest = -100000;
+        int lowest = 100000;
         
-        int avgHeight = (pt1.y + pt2.y)/2 ;
+        // Set default line positions
+        Point tA, tB, tC, bA, bB, bC; // t = top line, b = bottom line 
+        tA.x = 0;
+        tA.y = 0;
+        tC.x = 650;
+        tC.y = 0;
+        bA.x = 0;
+        bA.y = 480;
+        bC.x = 650;
+        bC.y = 480;
+    
         
-        if (avgHeight > highest && pt1.x < 400)
+        // variables for the top whisker edge
+        double aT, bT, xT, yT;
+        
+        // Select the uppermost and bottommost lines
+        for( size_t i = 0; i < lines.size(); i++ )
         {
-            highest = avgHeight;
-            bA.x = pt1.x;
-            bA.y = pt1.y;
-            bC.x = pt2.x;
-            bC.y = pt2.y;
+            float rho = lines[i][0], theta = lines[i][1];
+            Point pt1, pt2;
+            double a = cos(theta), b = sin(theta);
+            double x0 = a*rho, y0 = b*rho;
+            pt1.x = cvRound(x0 + 650*(-b));
+            pt1.y = cvRound(y0 + 650*(a));
+            pt2.x = cvRound(x0 - 650*(-b));
+            pt2.y = cvRound(y0 - 650*(a));
             
+            int avgHeight = (pt1.y + pt2.y)/2 ;
+            
+            if (avgHeight > highest && pt1.x < 400)
+            {
+                highest = avgHeight;
+                bA.x = pt1.x;
+                bA.y = pt1.y;
+                bC.x = pt2.x;
+                bC.y = pt2.y;
+                
+            }
+            if (avgHeight < lowest && pt1.x < 400)
+            {
+                lowest = avgHeight;
+                tA.x = pt1.x;
+                tA.y = pt1.y;
+                tC.x = pt2.x;
+                tC.y = pt2.y;
+                
+                aT = a;
+                bT = b;
+                xT = x0;
+                yT = y0;
+            }
         }
-        if (avgHeight < lowest && pt1.x < 400)
+        
+        // Draw the two whisker edges
+        line( cdst, tA, tC, Scalar(255,0,0), 2, LINE_AA);
+        line( cdst, bA, bC, Scalar(0,0,255), 2, LINE_AA);
+        
+        // Draw perpendicular lines from top whisker edge
+        float vX, vY;
+        double sum = 0.0;
+        int num_lines = 0;
+        for(int w = 125; w < 625; w += 100)
         {
-            lowest = avgHeight;
-            tA.x = pt1.x;
-            tA.y = pt1.y;
-            tC.x = pt2.x;
-            tC.y = pt2.y;
+            tB.x = cvRound(xT - w*(-bT));
+            tB.y = cvRound(yT - w*(aT));
             
-            aT = a;
-            bT = b;
-            xT = x0;
-            yT = y0;
+            // Get the direction vector going from A to B
+            vX = (float)(tB.x - tA.x);
+            vY = (float)(tB.y - tA.y);
+            
+            // Normalize the vector
+            float mag = sqrt(vX*vX + vY*vY);
+            vX = vX / mag;
+            vY = vY / mag;
+            
+            // Rotate the vector 90 degrees
+            float temp = vX;
+            vX = -vY;
+            vY = temp;
+            
+            // Create perpendicular line
+            bB.x = tB.x + vX*100;
+            bB.y = tB.y + vY*100;
+            
+            // Line bAbC represented as a1x + b1y = c1
+            double a1 = bC.y - bA.y;
+            double b1 = bA.x - bC.x;
+            double c1 = a1*bA.x + b1*bA.y;
+            
+            // Line tBbB represented as a2x + b2y = c2
+            double a2 = bB.y - tB.y;
+            double b2 = tB.x - bB.x;
+            double c2 = a2*tB.x + b2*tB.y;
+            
+            double determinant = a1*b2 - a2*b1;
+            
+            bB.x = (b2*c1 - b1*c2)/determinant; 
+            bB.y = (a1*c2 - a2*c1)/determinant;
+            
+            // Create perpendicular line
+            line( cdst, tB, bB, Scalar(0,255,0), 2, LINE_AA);
+            
+            double xLength = bB.x - tB.x;
+            double yLength = bB.y - tB.y;
+            double lineLength = sqrt(xLength*xLength + yLength*yLength);
+            
+            //cout << lineLength << endl;
+            
+            sum += lineLength;
+            num_lines++;
         }
-    }
-    
-    // Draw the two whisker edges
-    line( cdst, tA, tC, Scalar(255,0,0), 2, LINE_AA);
-    line( cdst, bA, bC, Scalar(0,0,255), 2, LINE_AA);
-    
-    // Draw perpendicular lines from top whisker edge
-    float vX, vY;
-    double sum = 0.0;
-    int num_lines = 0;
-    for(int w = 100; w < 600; w += 100)
-    {
-        tB.x = cvRound(xT - w*(-bT));
-	    tB.y = cvRound(yT - w*(aT));
         
-	    // Get the direction vector going from A to B
-	    vX = (float)(tB.x - tA.x);
-	    vY = (float)(tB.y - tA.y);
-	    
-	    // Normalize the vector
-	    float mag = sqrt(vX*vX + vY*vY);
-	    vX = vX / mag;
-	    vY = vY / mag;
-	    
-		// Rotate the vector 90 degrees
-		float temp = vX;
-		vX = -vY;
-		vY = temp;
-		
-		// Create perpendicular line
-		bB.x = tB.x + vX*100;
-		bB.y = tB.y + vY*100;
-		
-		// Line bAbC represented as a1x + b1y = c1
-		double a1 = bC.y - bA.y;
-		double b1 = bA.x - bC.x;
-		double c1 = a1*bA.x + b1*bA.y;
-		
-		// Line tBbB represented as a2x + b2y = c2
-		double a2 = bB.y - tB.y;
-		double b2 = tB.x - bB.x;
-		double c2 = a2*tB.x + b2*tB.y;
-		
-		double determinant = a1*b2 - a2*b1;
-		
-		bB.x = (b2*c1 - b1*c2)/determinant; 
-	    bB.y = (a1*c2 - a2*c1)/determinant;
-		
-		// Create perpendicular line
-	    line( cdst, tB, bB, Scalar(0,255,0), 2, LINE_AA);
-	    
-		double xLength = bB.x - tB.x;
-		double yLength = bB.y - tB.y;
-		double lineLength = sqrt(xLength*xLength + yLength*yLength);
-		
-		//cout << lineLength << endl;
-        
-        sum += lineLength;
-        num_lines++;
+        double avgDia = sum / num_lines;
+        double um =round(avgDia / ppum);
+        cout << "Whisker Diameter in Micrometers:  " << um << endl;
     }
-    
-    double avgDia = sum / num_lines;
-    double um =round(avgDia / ppum);
-    cout << "Whisker Diameter in Micrometers:  " << um << endl;
-
     
     imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
 }
