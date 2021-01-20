@@ -18,7 +18,7 @@ Mat cdst, cdstP;
 double um, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 int32_t motorPos, motorVel;
 
-int lowThreshold = 210;
+int lowThreshold = 200;
 int n_erode_dilate = 1;
 const int kernel_size = 5;
 
@@ -64,17 +64,16 @@ static void WhiskerDiameter(int, void*)
     // Set default line positions
     Point tA, tB, tC, bA, bB, bC; // t = top line, b = bottom line 
     tA.x = 0;
-    tA.y = 480;
+    tA.y = 0;
     tC.x = 650;
-    tC.y = 480;
+    tC.y = 0;
     bA.x = 0;
-    bA.y = 0;
+    bA.y = 480;
     bC.x = 650;
-    bC.y = 0;
+    bC.y = 480;
+
     
     // variables for the top whisker edge
-    float rhoT, thetaT;
-    float vX, vY;
     double aT, bT, xT, yT;
     
     // Select the uppermost and bottommost lines
@@ -94,22 +93,20 @@ static void WhiskerDiameter(int, void*)
         if (avgHeight > highest && pt1.x < 400)
         {
             highest = avgHeight;
-            tA.x = pt1.x;
-            tA.y = pt1.y;
-            tC.x = pt2.x;
-            tC.y = pt2.y;
-            
-        }
-        else if (avgHeight < lowest && pt1.x < 400)
-        {
-            lowest = avgHeight;
             bA.x = pt1.x;
             bA.y = pt1.y;
             bC.x = pt2.x;
             bC.y = pt2.y;
             
-            rhoT = rho;
-            thetaT = theta;
+        }
+        if (avgHeight < lowest && pt1.x < 400)
+        {
+            lowest = avgHeight;
+            tA.x = pt1.x;
+            tA.y = pt1.y;
+            tC.x = pt2.x;
+            tC.y = pt2.y;
+            
             aT = a;
             bT = b;
             xT = x0;
@@ -118,11 +115,18 @@ static void WhiskerDiameter(int, void*)
     }
     
     // Draw the two whisker edges
-    line( cdst, tA, tC, Scalar(0,0,255), 2, LINE_AA);
+    line( cdst, tA, tC, Scalar(255,0,0), 2, LINE_AA);
     line( cdst, bA, bC, Scalar(0,0,255), 2, LINE_AA);
     
+    // Draw perpendicular lines from top whisker edge
+    float vX, vY;
+    double sum = 0.0;
+    int num_lines = 0;
     for(int w = 100; w < 600; w += 100)
     {
+        tB.x = cvRound(xT - w*(-bT));
+	    tB.y = cvRound(yT - w*(aT));
+        
 	    // Get the direction vector going from A to B
 	    vX = (float)(tB.x - tA.x);
 	    vY = (float)(tB.y - tA.y);
@@ -163,27 +167,15 @@ static void WhiskerDiameter(int, void*)
 		double yLength = bB.y - tB.y;
 		double lineLength = sqrt(xLength*xLength + yLength*yLength);
 		
-		cout << lineLength << endl;
+		//cout << lineLength << endl;
+        
+        sum += lineLength;
+        num_lines++;
     }
     
-    
-    
-    // Average distance between the lines
-    /*
-    int dist1, dist2, avgDist;
-    dist1 = ptHigh1.y - ptLow1.y;
-    dist2 = ptHigh2.y - ptLow2.y;
-    avgDist = (dist1 + dist2) / 2;
-    double um =round(avgDist / ppum);
+    double avgDia = sum / num_lines;
+    double um =round(avgDia / ppum);
     cout << "Whisker Diameter in Micrometers:  " << um << endl;
-    Point avg1, avg2;
-    avg1.x = 325;
-    avg1.y = abs(ptLow2.y - ptLow1.y)/2 + min(ptLow1.y, ptLow2.y);
-    avg2.x = 325;
-    avg2.y = avg1.y + avgDist;
-    
-    line( cdst, avg1, avg2, Scalar(0,255,0), 2, LINE_AA);
-    */
 
     
     imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
@@ -243,10 +235,10 @@ int main( int argc, char** argv )
 		vars = handle.get_variables();
  
 		motorPos = vars.get_current_position();
-		std::cout << "Current position is " << motorPos << endl;
+		//std::cout << "Current position is " << motorPos << endl;
  
 		motorVel = 0;
-		std::cout << "Setting target velocity to " << motorVel << endl;
+		//std::cout << "Setting target velocity to " << motorVel << endl;
  
 		handle.exit_safe_start();
 		handle.set_target_velocity(motorVel);
@@ -288,7 +280,7 @@ int main( int argc, char** argv )
 	auto timeCurrent = std::chrono::high_resolution_clock::now();
     auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
     
-    while (timeDiff < 120000) // stop after 2 mins or when actuator reaches end of track
+    while (1) // stop after 2 mins or when actuator reaches end of track
     {
         bool bSuccess = cap.read(src); // read a new frame from video 
 
