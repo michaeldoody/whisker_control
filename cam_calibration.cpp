@@ -15,10 +15,9 @@ Mat src, src_gray;
 Mat dst, detected_edges;
 Mat cdst, cdstP;
 
-int lowThreshold = 8;
-const int max_lowThreshold = 255;
+int lowThreshold = 200;
 int n_erode_dilate = 1;
-const int kernel_size = 3;
+const int kernel_size = 5;
 
 string img_name = "whisker.jpg";
 
@@ -71,7 +70,9 @@ int main( int argc, char** argv )
   
     // Select ROI
     Rect2d rect = selectROI(img);
-  
+    //cout << "Height: " << rect.height << endl;
+    //cout << "Width: " << rect.width << endl;
+    
     // Crop image 
     Mat imgCrop = img(rect);
   
@@ -81,10 +82,10 @@ int main( int argc, char** argv )
     
     Mat m = imgCrop.clone();
     cvtColor(m,m,COLOR_BGR2GRAY);
-    blur(m,m,Size(3,3));
+    GaussianBlur(m,m,Size(kernel_size,kernel_size),0,0);
     Canny(m, m, lowThreshold, lowThreshold*3, kernel_size );
     dilate(m, m, Mat(), Point(-1,-1), n_erode_dilate);
-    //erode(m, m, Mat(), Point(-1,-1), n_erode_dilate);
+    erode(m, m, Mat(), Point(-1,-1), n_erode_dilate);
     
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
@@ -107,8 +108,8 @@ int main( int argc, char** argv )
     }
     
     // Calculate pixels per micrometer
-    double height = bounding_rect.height;
-    double width = bounding_rect.width;
+    double height = rect.height; //bounding_rect.height;
+    double width = rect.width; //bounding_rect.width;
     
     double pixels_per_um = round((height/101.0 + width/101.0) * 1000.0 /2) / 10000.0;
     

@@ -22,8 +22,14 @@ int lowThreshold = 200;
 int n_erode_dilate = 1;
 const int kernel_size = 5;
 
+int vpi = 0; // velocity profile index
+int velProfile[5] = {500000, 1000000, 1500000, 2000000, 3000000};
+float expectedDia[5] = {1750, 1500, 1000, 500, 25};
+int velProfileTime[5] = {24000, 48000, 72000, 96000, 12000};
+
 static void WhiskerDiameter(int, void*)
 {
+    
     Mat m = src.clone();
     
     GaussianBlur(src_gray, blur_gray, Size(kernel_size, kernel_size), 0, 0);
@@ -48,9 +54,6 @@ static void WhiskerDiameter(int, void*)
     }
     else
     {
-        int highest = -100000;
-        int lowest = 100000;
-        
         // Set default line positions
         Point tA, tB, tC, bA, bB, bC; // t = top line, b = bottom line 
         tA.x = 0;
@@ -65,6 +68,10 @@ static void WhiskerDiameter(int, void*)
         
         // variables for the top whisker edge
         double aT, bT, xT, yT;
+        
+        // Tracks avg height of top and bottom line
+        int highest = -100000;
+        int lowest = 100000;
         
         // Select the uppermost and bottommost lines
         for( size_t i = 0; i < lines.size(); i++ )
@@ -163,8 +170,8 @@ static void WhiskerDiameter(int, void*)
             num_lines++;
         }
         
-        double avgDia = sum / num_lines;
-        double um =round(avgDia / ppum);
+        float avgDia = sum / num_lines;
+        float um =round(avgDia / ppum);
         cout << "Whisker Diameter in Micrometers:  " << um << endl;
     }
     
@@ -202,6 +209,9 @@ tic::handle open_handle(const char * desired_serial_number = nullptr)
 
 string datetime()	
 {	
+    
+    //TODO 2021-01-20-11-28-30_1700D_25d_170-1S.csv
+    //time, steps, target velocity, actual velocity (adjusted from feedback), target diameter, actual diameter 
     time_t rawtime;	
     struct tm * timeinfo;	
     char buffer[80];	
@@ -270,7 +280,7 @@ int main( int argc, char** argv )
 	auto timeCurrent = std::chrono::high_resolution_clock::now();
     auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
     
-    while (1) // stop after 2 mins or when actuator reaches end of track
+    while (1)
     {
         bool bSuccess = cap.read(src); // read a new frame from video 
 
@@ -290,15 +300,23 @@ int main( int argc, char** argv )
         auto timeCurrent = std::chrono::high_resolution_clock::now();
         timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
         
-        // Motor velocity equation
-        motorVel = 83.25*timeDiff + 10000;
-        double linearVel = motorVel/1000000.0;
-        motorVel = (int)motorVel;
+        if(timeDiff > velProfileTime[vpi])
+        {
+            if(vpi < 5) //TODO change to a variable
+            {
+                vpi++;
+            }
+            else {break;}
+        }
+        
+        // Set motor velocity according to velocity profile
+        motorVel = velProfile[vpi];
+        double linearVel = motorVel/1000000;
         cout << "Setting target velocity to " << motorVel << endl;
         motorPos = vars.get_current_position();
         cout << "Current position is " << motorPos << endl;
-        //handle.exit_safe_start();
-		//handle.set_target_velocity(-motorVel);
+        handle.exit_safe_start();
+		handle.set_target_velocity(-motorVel);
        
         
         // Write timestamp, whisker diameter, and actuator linear velocity to csv file
@@ -307,12 +325,12 @@ int main( int argc, char** argv )
         if (waitKey(100) == 27)
         {
             cout << "Esc key is pressed by user. Stopping the video" << endl;
-            //handle.set_target_velocity(0);
+            handle.set_target_velocity(0);
             break;
         }
     }
     
-    //handle.set_target_velocity(0);
+    handle.set_target_velocity(0);
     dataFile.close();
     return 0;
 }
