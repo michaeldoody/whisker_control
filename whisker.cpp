@@ -18,6 +18,10 @@ Mat cdst, cdstP;
 double um, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 int32_t motorPos, motorVel;
 
+int baseDia = 1700; // Base diameter in microns
+int tipDia = 25; // Tip diameter in microns
+int arcLength = 170; // Whisker arc length in mm 
+
 int lowThreshold = 200;
 int n_erode_dilate = 1;
 const int kernel_size = 5;
@@ -210,8 +214,7 @@ tic::handle open_handle(const char * desired_serial_number = nullptr)
 string datetime()	
 {	
     
-    //TODO 2021-01-20-11-28-30_1700D_25d_170-1S.csv
-    //time, steps, target velocity, actual velocity (adjusted from feedback), target diameter, actual diameter 
+ 
     time_t rawtime;	
     struct tm * timeinfo;	
     char buffer[80];	
@@ -219,7 +222,7 @@ string datetime()
     time (&rawtime);	
     timeinfo = localtime(&rawtime);	
 
-    strftime(buffer,80,"data%d%m%Y_%H%M%S",timeinfo);	
+    strftime(buffer,80,"%F-%T_",timeinfo);	
     return buffer;	
 }
 
@@ -270,11 +273,13 @@ int main( int argc, char** argv )
     ppum = atof(ppum_text.c_str());
 
     // Create a csv file for whisker drawing data
-    string filename = "data/" + datetime() + ".csv";
+    //TODO 2021-01-20-11-28-30_1700D_25d_170-1S.csv
+    //time, steps, target velocity, actual velocity (adjusted from feedback), target diameter, actual diameter
+    string filename = "data/" + datetime() + to_string(baseDia) + "D_" + to_string(tipDia) + "d_" + to_string(arcLength) + "S.csv";
     std::ofstream dataFile(filename);
     
     // Write the data file column headers
-    dataFile << "Time(ms)" << "," << "WhiskerDiameter(um)" << "," << "ActuatorVelocity(mm/s)" << endl;
+    dataFile << "Time(ms)," << "TargetVelocity(mm/s)," << "ActualVelocity(mm/s)," << "TargetWhiskerDiameter(um)," << "ActualWhiskerDiameter(um)" << endl;
 	
 	auto timeStart = std::chrono::high_resolution_clock::now();
 	auto timeCurrent = std::chrono::high_resolution_clock::now();
