@@ -334,6 +334,17 @@ int main( int argc, char** argv )
         motorPos = vars.get_current_position();
         linearPos = (-7 * (double)motorPos / 688) + (7 * (double)EXPECTED_START_POS / 688); // Equation converts motor position to linear actuator position (mm) 
         cout << "Current actuator position is " << linearPos << " mm" << endl;
+        cout << endl;
+        cout << endl;
+        
+        // Limit switch
+        if(linearPos > 325)
+        {
+			cout << "Actuator limit reached... Stopping motor" << endl;
+			handle.set_target_velocity(0);
+			break;
+		}	
+        
         handle.exit_safe_start();
 		handle.set_target_velocity(-motorVel);
        
