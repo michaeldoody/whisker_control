@@ -16,19 +16,21 @@ Mat dst, detected_edges, dilated;
 Mat cdst, cdstP;
 
 double um, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
-int32_t motorPos, motorVel;
+double linearPos, linearVel;
+int32_t motorPos, startPos, motorVel;
+int32_t EXPECTED_START_POS = 32500; // Position motor resets to at beginning of each trial. Update only if motor has stalled
 
 int baseDia = 1700; // Base diameter in microns
 int tipDia = 25; // Tip diameter in microns
-int arcLength = 170; // Whisker arc length in mm 
+int arcLen = 170; // Whisker arc length in mm 
+int timeLimit = 120000; // Max amount of time whisker drawing process will take
 
-int lowThreshold = 200;
+int lowThreshold = 190;
 int n_erode_dilate = 1;
 const int kernel_size = 5;
 
 int vpi = 0; // velocity profile index
 int velProfile[5] = {500000, 1000000, 1500000, 2000000, 3000000};
-float expectedDia[5] = {1750, 1500, 1000, 500, 25};
 int velProfileTime[5] = {24000, 48000, 72000, 96000, 12000};
 
 static void WhiskerDiameter(int, void*)
@@ -233,18 +235,12 @@ int main( int argc, char** argv )
 	
 	try
 	{
+		// Open tic handle and reset actuator to start position
 		handle = open_handle();
- 
-		vars = handle.get_variables();
- 
-		motorPos = vars.get_current_position();
-		//std::cout << "Current position is " << motorPos << endl;
- 
-		motorVel = 0;
-		//std::cout << "Setting target velocity to " << motorVel << endl;
- 
 		handle.exit_safe_start();
-		handle.set_target_velocity(motorVel);
+		handle.set_target_position(EXPECTED_START_POS);
+		vars = handle.get_variables();
+		startPos = vars.get_current_position();
 	}
 	catch (const std::exception & error)
 	{
@@ -252,10 +248,21 @@ int main( int argc, char** argv )
 		return 1;
 	}
 	
-    //open the video file for reading
+	// Wait until sctuator reaches start position
+	while(startPos < EXPECTED_START_POS*0.99 && startPos > EXPECTED_START_POS*1.01)
+	{
+		vars = handle.get_variables();
+		startPos = vars.get_current_position();
+	}
+	
+	
+	cout << "Clamp the polymer filament in place, and allow it to heat to its glass temperature. Press the Enter Key when ready to draw." << endl;
+	cin.get();
+	
+    // Open the video file for reading
     VideoCapture cap(0); 
   
-    // if not success, exit program
+    // If no success opening camera, exit program
     if (cap.isOpened() == false)  
     {
         cout << "Cannot open the camera" << endl;
@@ -271,11 +278,12 @@ int main( int argc, char** argv )
 	infile.close();
     
     ppum = atof(ppum_text.c_str());
-
+    
+   
     // Create a csv file for whisker drawing data
     //TODO 2021-01-20-11-28-30_1700D_25d_170-1S.csv
     //time, steps, target velocity, actual velocity (adjusted from feedback), target diameter, actual diameter
-    string filename = "data/" + datetime() + to_string(baseDia) + "D_" + to_string(tipDia) + "d_" + to_string(arcLength) + "S.csv";
+    string filename = "data/" + datetime() + to_string(baseDia) + "D_" + to_string(tipDia) + "d_" + to_string(arcLen) + "S.csv";
     std::ofstream dataFile(filename);
     
     // Write the data file column headers
@@ -284,6 +292,7 @@ int main( int argc, char** argv )
 	auto timeStart = std::chrono::high_resolution_clock::now();
 	auto timeCurrent = std::chrono::high_resolution_clock::now();
     auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
+ 
     
     while (1)
     {
@@ -314,12 +323,17 @@ int main( int argc, char** argv )
             else {break;}
         }
         
+        // Equation converting current arc length to current expected whisker diameter from whisker geometry profile
+		float expectedDia = ((tipDia - baseDia)* timeDiff / timeLimit) + 1700;
+        
         // Set motor velocity according to velocity profile
-        motorVel = velProfile[vpi];
-        double linearVel = motorVel/1000000;
-        cout << "Setting target velocity to " << motorVel << endl;
+        motorVel = timeDiff*timeDiff/500 ;
+        linearVel = (double)motorVel/1000000.0;
+        cout << "Setting target linear velocity to " << linearVel << " mm/s" << endl;
+        vars = handle.get_variables();
         motorPos = vars.get_current_position();
-        cout << "Current position is " << motorPos << endl;
+        linearPos = (-7 * (double)motorPos / 688) + (7 * (double)EXPECTED_START_POS / 688); // Equation converts motor position to linear actuator position (mm) 
+        cout << "Current actuator position is " << linearPos << " mm" << endl;
         handle.exit_safe_start();
 		handle.set_target_velocity(-motorVel);
        
