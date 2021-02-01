@@ -15,8 +15,8 @@ Mat src, src_gray, blur_gray;
 Mat dst, detected_edges, dilated;
 Mat cdst, cdstP;
 
-double um, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
-double linearPos, linearVel;
+float um, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
+float linearPos, linearVel, expectedDia;
 int32_t motorPos, startPos, motorVel;
 int32_t EXPECTED_START_POS = 32500; // Position motor resets to at beginning of each trial. Update only if motor has stalled
 
@@ -255,9 +255,9 @@ int main( int argc, char** argv )
 		startPos = vars.get_current_position();
 	}
 	
-	
-	cout << "Clamp the polymer filament in place, and allow it to heat to its glass temperature. Press the Enter Key when ready to draw." << endl;
+    cout << "Clamp the polymer filament in place, and allow it to heat to its glass temperature. Press the Enter Key when ready to draw." << endl;
 	cin.get();
+
 	
     // Open the video file for reading
     VideoCapture cap(0); 
@@ -323,8 +323,6 @@ int main( int argc, char** argv )
             else {break;}
         }
         
-        // Equation converting current arc length to current expected whisker diameter from whisker geometry profile
-		float expectedDia = ((tipDia - baseDia)* timeDiff / timeLimit) + 1700;
         
         // Set motor velocity according to velocity profile
         motorVel = timeDiff*timeDiff/500 ;
@@ -337,6 +335,9 @@ int main( int argc, char** argv )
         cout << endl;
         cout << endl;
         
+        // Equation converting current arc length to current expected whisker diameter from whisker geometry profile
+		expectedDia = (tipDia - baseDia) * linearPos / arcLen + baseDia;
+        
         // Limit switch
         if(linearPos > 325)
         {
@@ -345,12 +346,16 @@ int main( int argc, char** argv )
 			break;
 		}	
         
+        //TODO add time switch and arc length switch to stop motor
+        
         handle.exit_safe_start();
 		handle.set_target_velocity(-motorVel);
        
         
         // Write timestamp, whisker diameter, and actuator linear velocity to csv file
-		dataFile << timeDiff << "," << um << "," << linearVel << endl;
+        //time, steps, target velocity, actual velocity (adjusted from feedback), target diameter, actual diameter
+
+		dataFile << timeDiff << "," << linearVel << "," << linearVel << "," << expectedDia << "," << um << endl;
 
         if (waitKey(100) == 27)
         {
