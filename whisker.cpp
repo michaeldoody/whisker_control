@@ -7,6 +7,15 @@
 #include <unistd.h>
 #include <chrono>
 
+/*
+Tic Input and Motor Settings in Pololu Tic Control Center GUI
+Max Speed: 500000000
+Starting Speed: 2500
+Max Acceleration: 40000
+Step Mode: 1/4 step
+Current Limit: 2005 mA
+*/
+
 using namespace cv;
 using namespace std;
 using namespace std::chrono;
@@ -23,7 +32,7 @@ int32_t EXPECTED_START_POS = 32500; // Position motor resets to at beginning of 
 int baseDia = 1700; // Base diameter in microns
 int tipDia = 25; // Tip diameter in microns
 int arcLen = 170; // Whisker arc length in mm 
-int timeLimit = 120000; // Max amount of time whisker drawing process will take
+int timeLimit = 120000; // Max amount of time whisker drawing process will take in ms
 
 int lowThreshold = 190;
 int n_erode_dilate = 1;
@@ -248,7 +257,7 @@ int main( int argc, char** argv )
 		return 1;
 	}
 	
-	// Wait until sctuator reaches start position
+	// Wait until actuator reaches start position
 	while(startPos < EXPECTED_START_POS*0.99 && startPos > EXPECTED_START_POS*1.01)
 	{
 		vars = handle.get_variables();
@@ -282,7 +291,7 @@ int main( int argc, char** argv )
    
     // Create a csv file for whisker drawing data
     //TODO 2021-01-20-11-28-30_1700D_25d_170-1S.csv
-    //time, steps, target velocity, actual velocity (adjusted from feedback), target diameter, actual diameter
+    //time, linear Position, target velocity, actual velocity (adjusted from feedback), target diameter, actual diameter
     string filename = "data/" + datetime() + to_string(baseDia) + "D_" + to_string(tipDia) + "d_" + to_string(arcLen) + "S.csv";
     std::ofstream dataFile(filename);
     
@@ -327,7 +336,7 @@ int main( int argc, char** argv )
 		float expectedDia = ((tipDia - baseDia)* timeDiff / timeLimit) + 1700;
         
         // Set motor velocity according to velocity profile
-        motorVel = timeDiff*timeDiff/500 ;
+        motorVel = timeDiff*timeDiff/800;
         linearVel = (double)motorVel/1000000.0;
         cout << "Setting target linear velocity to " << linearVel << " mm/s" << endl;
         vars = handle.get_variables();
