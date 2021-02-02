@@ -27,7 +27,7 @@ Mat cdst, cdstP;
 float um, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 float linearPos, linearVel, expectedDia;
 int32_t motorPos, startPos, motorVel;
-int32_t EXPECTED_START_POS = 32500; // Position motor resets to at beginning of each trial. Update only if motor has stalled
+int32_t EXPECTED_START_POS = 33500; // Position motor resets to at beginning of each trial. Update only if motor has stalled
 
 int baseDia = 1700; // Base diameter in microns
 int tipDia = 25; // Tip diameter in microns
@@ -37,10 +37,6 @@ int timeLimit = 120000; // Max amount of time whisker drawing process will take 
 int lowThreshold = 190;
 int n_erode_dilate = 1;
 const int kernel_size = 5;
-
-int vpi = 0; // velocity profile index
-int velProfile[5] = {500000, 1000000, 1500000, 2000000, 3000000};
-int velProfileTime[5] = {24000, 48000, 72000, 96000, 12000};
 
 static void WhiskerDiameter(int, void*)
 {
@@ -323,18 +319,10 @@ int main( int argc, char** argv )
         auto timeCurrent = std::chrono::high_resolution_clock::now();
         timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
         
-        if(timeDiff > velProfileTime[vpi])
-        {
-            if(vpi < 5) //TODO change to a variable
-            {
-                vpi++;
-            }
-            else {break;}
-        }
         
         
         // Set motor velocity according to velocity profile
-        motorVel = timeDiff*timeDiff/800;
+        motorVel = timeDiff*timeDiff/2885 + 1000;
         linearVel = (double)motorVel/1000000.0;
         cout << "Setting target linear velocity to " << linearVel << " mm/s" << endl;
         vars = handle.get_variables();
@@ -346,6 +334,7 @@ int main( int argc, char** argv )
         
         // Equation converting current arc length to current expected whisker diameter from whisker geometry profile
 		expectedDia = (tipDia - baseDia) * linearPos / arcLen + baseDia;
+		cout << "Expected Whisker Diameter: " << expectedDia << " um" << endl;
         
         // Limit switch
         if(linearPos > 325)
