@@ -24,14 +24,14 @@ Mat src, src_gray, blur_gray;
 Mat dst, detected_edges, dilated;
 Mat cdst, cdstP;
 
-float um, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
+float whiskerDia, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 float linearPos, linearVel, expectedDia;
 int32_t motorPos, startPos, motorVel;
 int32_t EXPECTED_START_POS = 33500; // Position motor resets to at beginning of each trial. Update only if motor has stalled
 
 int baseDia = 1700; // Base diameter in microns
 int tipDia = 25; // Tip diameter in microns
-int arcLen = 170; // Whisker arc length in mm 
+int arcLen = 200; // Whisker arc length in mm 
 int timeLimit = 120000; // Max amount of time whisker drawing process will take in ms
 
 int lowThreshold = 190;
@@ -182,11 +182,12 @@ static void WhiskerDiameter(int, void*)
         }
         
         float avgDia = sum / num_lines;
-        float um =round(avgDia / ppum);
-        cout << "Whisker Diameter in Micrometers:  " << um << endl;
+        float whiskerDia =round(avgDia / ppum);
+        cout << "Whisker Diameter in Micrometers:  " << whiskerDia << endl;
     }
     
     imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
+    
 }
 
 // Opens a handle to a Tic that can be used for communication.
@@ -301,6 +302,7 @@ int main( int argc, char** argv )
     
     while (1)
     {
+
         bool bSuccess = cap.read(src); // read a new frame from video 
 
         // Break the while loop if there is no video
@@ -314,35 +316,56 @@ int main( int argc, char** argv )
         cvtColor( src, src_gray, COLOR_BGR2GRAY );
         namedWindow( "RasPi Cam", WINDOW_AUTOSIZE );
         imshow("RasPi Cam", src);
-        WhiskerDiameter(0, 0);
+        
         
         auto timeCurrent = std::chrono::high_resolution_clock::now();
         timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(timeCurrent - timeStart).count();
         
         
-        
         // Set motor velocity according to velocity profile
-        motorVel = timeDiff*timeDiff/2885 + 1000;
+        motorVel = timeDiff*timeDiff/2897 + 10000;
         linearVel = (double)motorVel/1000000.0;
         cout << "Setting target linear velocity to " << linearVel << " mm/s" << endl;
         vars = handle.get_variables();
         motorPos = vars.get_current_position();
         linearPos = (-7 * (double)motorPos / 688) + (7 * (double)EXPECTED_START_POS / 688); // Equation converts motor position to linear actuator position (mm) 
         cout << "Current actuator position is " << linearPos << " mm" << endl;
-        cout << endl;
-        cout << endl;
+
         
         // Equation converting current arc length to current expected whisker diameter from whisker geometry profile
 		expectedDia = (tipDia - baseDia) * linearPos / arcLen + baseDia;
 		cout << "Expected Whisker Diameter: " << expectedDia << " um" << endl;
+
         
         // Limit switch
-        if(linearPos > 325)
+        if(linearPos > 340)
         {
 			cout << "Actuator limit reached... Stopping motor" << endl;
 			handle.set_target_velocity(0);
 			break;
 		}	
+        
+        //Measure whisker diameter and adjust motor velocity
+        whiskerDia = expectedDia;
+        WhiskerDiameter(0, 0);
+        cout << endl;
+        cout << endl;
+
+        if(whiskerDia > expectedDia)
+        {
+            motorVel += motorVel*0.2;
+            cout << "Dia. too large. Increasing velocity..." << endl;
+            cout << endl;
+            cout << endl;
+        }
+        else if(whiskerDia < expectedDia)
+        {
+            motorVel -= motorVel*0.2;
+            cout << "Dia. too small. Decreasing velocity..." << endl;
+            cout << endl;
+            cout << endl;
+        }
+
         
         //TODO add time switch and arc length switch to stop motor
         
@@ -353,9 +376,9 @@ int main( int argc, char** argv )
         // Write timestamp, whisker diameter, and actuator linear velocity to csv file
         //time, steps, target velocity, actual velocity (adjusted from feedback), target diameter, actual diameter
 
-		dataFile << timeDiff << "," << linearVel << "," << linearVel << "," << expectedDia << "," << um << endl;
+		dataFile << timeDiff << "," << linearVel << "," << linearVel << "," << expectedDia << "," << whiskerDia << endl;
 
-        if (waitKey(100) == 27)
+        if (waitKey(10) == 27)
         {
             cout << "Esc key is pressed by user. Stopping the video" << endl;
             handle.set_target_velocity(0);
