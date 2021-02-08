@@ -1,6 +1,8 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include <opencv2/opencv.hpp>
+#include "plots/pbPlots.hpp"
+#include "plots/supportLib.hpp"
 #include "tic.hpp"
 #include <iostream>
 #include <math.h>
@@ -26,6 +28,7 @@ Mat cdst, cdstP;
 
 float whiskerDia, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 float linearPos, linearVel, expectedDia;
+vector<double> diaVec{}, posVec{}; // Saves data for Linear Actuator Position vs. Whisker Diameter line graph
 int32_t motorPos, startPos, motorVel;
 int32_t EXPECTED_START_POS = 33500; // Position motor resets to at beginning of each trial. Update only if motor has stalled
 
@@ -183,6 +186,7 @@ static void WhiskerDiameter(int, void*)
         
         float avgDia = sum / num_lines;
         float whiskerDia =round(avgDia / ppum);
+        diaVec.push_back(whiskerDia);
         cout << "Whisker Diameter in Micrometers:  " << whiskerDia << endl;
     }
     
@@ -329,6 +333,7 @@ int main( int argc, char** argv )
         vars = handle.get_variables();
         motorPos = vars.get_current_position();
         linearPos = (-7 * (double)motorPos / 688) + (7 * (double)EXPECTED_START_POS / 688); // Equation converts motor position to linear actuator position (mm) 
+        posVec.push_back(linearPos);
         cout << "Current actuator position is " << linearPos << " mm" << endl;
 
         
@@ -388,5 +393,13 @@ int main( int argc, char** argv )
     
     handle.set_target_velocity(0);
     dataFile.close();
+    
+    // Draw Linear Actuator Position vs. Whisker Diameter line graph
+    RGBABitmapImageReference *imageRef = CreateRGBABitmapImageReference();
+    DrawScatterPlot(imageRef, 1200, 800, &diaVec, &posVec);
+    vector<double> *pngData = ConvertToPNG(imageRef->image);
+	WriteToFile(pngData, "plot.png");
+	DeleteImage(imageRef->image); 
+    
     return 0;
 }
