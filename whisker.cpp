@@ -1,6 +1,6 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
-#include <opencv2/opencv.hpp>
+#include "opencv2/opencv.hpp"
 #include "plots/pbPlots.hpp"
 #include "plots/supportLib.hpp"
 #include "tic.hpp"
@@ -30,7 +30,7 @@ float whiskerDia, ppum; // Diameter of whisker in micrometers & Pixels per micro
 float linearPos, linearVel, expectedDia;
 vector<double> diaVec{}, posVec{}; // Saves data for Linear Actuator Position vs. Whisker Diameter line graph
 int32_t motorPos, startPos, motorVel;
-int32_t EXPECTED_START_POS = 33500; // Position motor resets to at beginning of each trial. Update only if motor has stalled
+int32_t EXPECTED_START_POS = 7000; // Position motor resets to at beginning of each trial. Update only if motor has stalled
 
 int baseDia = 1700; // Base diameter in microns
 int tipDia = 25; // Tip diameter in microns
@@ -64,6 +64,7 @@ static void WhiskerDiameter(int, void*)
     
     if (lines.size() < 2) // Whisker isn't in full view
     {
+		whiskerDia = expectedDia;
         cout << "Whisker is not centered / in view of camera" << endl;
     }
     else
@@ -185,11 +186,12 @@ static void WhiskerDiameter(int, void*)
         }
         
         float avgDia = sum / num_lines;
-        float whiskerDia =round(avgDia / ppum);
-        diaVec.push_back(whiskerDia);
+        whiskerDia =round(avgDia / ppum);
+        
         cout << "Whisker Diameter in Micrometers:  " << whiskerDia << endl;
     }
     
+    //diaVec.push_back(whiskerDia);
     imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
     
 }
@@ -340,10 +342,11 @@ int main( int argc, char** argv )
         // Equation converting current arc length to current expected whisker diameter from whisker geometry profile
 		expectedDia = (tipDia - baseDia) * linearPos / arcLen + baseDia;
 		cout << "Expected Whisker Diameter: " << expectedDia << " um" << endl;
+		diaVec.push_back(expectedDia);
 
         
         // Limit switch
-        if(linearPos > 340)
+        if(linearPos > 300)
         {
 			cout << "Actuator limit reached... Stopping motor" << endl;
 			handle.set_target_velocity(0);
@@ -396,7 +399,7 @@ int main( int argc, char** argv )
     
     // Draw Linear Actuator Position vs. Whisker Diameter line graph
     RGBABitmapImageReference *imageRef = CreateRGBABitmapImageReference();
-    DrawScatterPlot(imageRef, 1200, 800, &diaVec, &posVec);
+    DrawScatterPlot(imageRef, 1200, 800, &posVec, &diaVec);
     vector<double> *pngData = ConvertToPNG(imageRef->image);
 	WriteToFile(pngData, "plot.png");
 	DeleteImage(imageRef->image); 
