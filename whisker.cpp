@@ -27,10 +27,10 @@ Mat dst, detected_edges, dilated;
 Mat cdst, cdstP;
 
 float whiskerDia, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
-float linearPos, linearVel, expectedDia;
+float linearPos, linearVel, currVel, expectedDia;
 vector<double> diaVec{}, posVec{}; // Saves data for Linear Actuator Position vs. Whisker Diameter line graph
 int32_t motorPos, startPos, motorVel;
-int32_t EXPECTED_START_POS = 7000; // Position motor resets to at beginning of each trial. Update only if motor has stalled
+int32_t EXPECTED_START_POS = 35000; // Position motor resets to at beginning of each trial. Update only if motor has stalled
 
 int baseDia = 1700; // Base diameter in microns
 int tipDia = 25; // Tip diameter in microns
@@ -299,7 +299,7 @@ int main( int argc, char** argv )
     std::ofstream dataFile(filename);
     
     // Write the data file column headers
-    dataFile << "Time(ms)," << "TargetVelocity(mm/s)," << "ActualVelocity(mm/s)," << "TargetWhiskerDiameter(um)," << "ActualWhiskerDiameter(um)" << endl;
+    dataFile << "Time(ms)," << "TargetVelocity(mm/s)," << "ActualVelocity(mm/s)," << "DistanceTraveled(mm)," << "TargetWhiskerDiameter(um)," << "ActualWhiskerDiameter(um)" << endl;
 	
 	auto timeStart = std::chrono::high_resolution_clock::now();
 	auto timeCurrent = std::chrono::high_resolution_clock::now();
@@ -329,12 +329,13 @@ int main( int argc, char** argv )
         
         
         // Set motor velocity according to velocity profile
-        motorVel = pow(timeDiff, 3.0)/16250000 + 10000;
+        motorVel = pow(timeDiff, 3.0)/2000000 + 3300000;
         linearVel = (double)motorVel/1000000.0;
         cout << "Setting target linear velocity to " << linearVel << " mm/s" << endl;
         vars = handle.get_variables();
+        currVel = (double)vars.get_current_velocity() /1000000.0;
         motorPos = vars.get_current_position();
-        linearPos = (-7 * (double)motorPos / 688) + (7 * (double)EXPECTED_START_POS / 688); // Equation converts motor position to linear actuator position (mm) 
+        linearPos = (-7 * (double)motorPos / 688) + (7 * (double)EXPECTED_START_POS / 688); // DO NOT CHANGE. Equation converts motor position to linear actuator position (mm) 
         posVec.push_back(linearPos);
         cout << "Current actuator position is " << linearPos << " mm" << endl;
 
@@ -345,7 +346,7 @@ int main( int argc, char** argv )
 		diaVec.push_back(expectedDia);
 
         
-        // Limit switch
+        // Coded limit switch
         if(linearPos > 300)
         {
 			cout << "Actuator limit reached... Stopping motor" << endl;
@@ -359,16 +360,16 @@ int main( int argc, char** argv )
         cout << endl;
         cout << endl;
 
-        if(whiskerDia > expectedDia)
+        if(whiskerDia > expectedDia+expectedDia*0.05)
         {
-            motorVel += motorVel*0.2;
+            motorVel += motorVel*0.5;
             cout << "Dia. too large. Increasing velocity..." << endl;
             cout << endl;
             cout << endl;
         }
-        else if(whiskerDia < expectedDia)
+        else if(whiskerDia < expectedDia-expectedDia*0.05)
         {
-            motorVel -= motorVel*0.2;
+            motorVel -= motorVel*0.5;
             cout << "Dia. too small. Decreasing velocity..." << endl;
             cout << endl;
             cout << endl;
@@ -384,7 +385,7 @@ int main( int argc, char** argv )
         // Write timestamp, whisker diameter, and actuator linear velocity to csv file
         //time, steps, target velocity, actual velocity (adjusted from feedback), target diameter, actual diameter
 
-		dataFile << timeDiff << "," << linearVel << "," << linearVel << "," << expectedDia << "," << whiskerDia << endl;
+		dataFile << timeDiff << "," << linearVel << "," << currVel << "," << linearPos << "," << expectedDia << "," << whiskerDia << endl;
 
         if (waitKey(10) == 27)
         {
@@ -399,7 +400,27 @@ int main( int argc, char** argv )
     
     // Draw Linear Actuator Position vs. Whisker Diameter line graph
     RGBABitmapImageReference *imageRef = CreateRGBABitmapImageReference();
-    DrawScatterPlot(imageRef, 1200, 800, &posVec, &diaVec);
+    
+    ScatterPlotSeries *series = GetDefaultScatterPlotSeriesSettings();
+	series->xs = &posVec;
+	series->ys = &diaVec;
+	series->linearInterpolation = true;
+	//series->lineType = toVector(L"dashed");
+	series->lineThickness = 2;
+	series->color = GetGray(0.3);
+    
+    ScatterPlotSettings *settings = GetDefaultScatterPlotSettings();
+	settings->width = 1200;
+	settings->height = 800;
+	settings->autoBoundaries = true;
+	settings->autoPadding = true;
+	settings->title = toVector(L"Whisker Diameter vs Linear Actuator Distance Traveled");
+	settings->xLabel = toVector(L"Linear Actuator Distance Traveled (mm)");
+	settings->yLabel = toVector(L"Whisker Dia. (microns)");
+	settings->scatterPlotSeries->push_back(series);
+    
+    //DrawScatterPlot(imageRef, 1200, 800, &posVec, &diaVec);
+    DrawScatterPlotFromSettings(imageRef, settings);
     vector<double> *pngData = ConvertToPNG(imageRef->image);
 	WriteToFile(pngData, "plot.png");
 	DeleteImage(imageRef->image); 
