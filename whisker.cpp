@@ -267,8 +267,8 @@ int main( int argc, char** argv )
 		startPos = vars.get_current_position();
 	}
 	
-    cout << "Clamp the polymer filament in place, and allow it to heat to its glass temperature. Press the Enter Key when ready to draw." << endl;
-	cin.get();
+    //cout << "Clamp the polymer filament in place, and allow it to heat to its glass temperature. Press the Enter Key when ready to draw." << endl;
+	//cin.get();
 
 	
     // Open the video file for reading
@@ -291,6 +291,37 @@ int main( int argc, char** argv )
     
     ppum = atof(ppum_text.c_str());
     
+    while(1)
+    {
+        bool bSuccess = cap.read(src); // read a new frame from video 
+    
+        // Break the while loop if there is no video
+        if (bSuccess == false) 
+        {
+            cout << "Could not open video stream!\n" << endl;
+            return -1;
+        }
+        
+        cout << "Clamp the polymer filament in place, and allow it to heat to its glass temperature. Press the Enter Key when ready to draw." << endl;
+
+    
+        dst.create( src.size(), src.type() );
+        cvtColor( src, src_gray, COLOR_BGR2GRAY );
+        namedWindow( "RasPi Cam", WINDOW_AUTOSIZE );
+        imshow("RasPi Cam", src);
+        WhiskerDiameter(0, 0);
+        cout << endl;
+        cout << endl;
+        cout << endl;
+        cout << endl;
+        cout << endl;
+        
+        if (waitKey(10) == 13)
+        {
+            cout << "Whisker drawing starting now..." << endl;
+            break;
+        }
+    }
    
     // Create a csv file for whisker drawing data
     //TODO 2021-01-20-11-28-30_1700D_25d_170-1S.csv
@@ -329,7 +360,7 @@ int main( int argc, char** argv )
         
         
         // Set motor velocity according to velocity profile
-        motorVel = pow(timeDiff, 3.0)/2000000 + 3300000;
+        motorVel = pow(timeDiff, 3.0)/8000000 + 100000;
         linearVel = (double)motorVel/1000000.0;
         cout << "Setting target linear velocity to " << linearVel << " mm/s" << endl;
         vars = handle.get_variables();
