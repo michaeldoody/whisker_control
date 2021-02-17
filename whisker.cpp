@@ -191,7 +191,6 @@ static void WhiskerDiameter(int, void*)
         cout << "Whisker Diameter in Micrometers:  " << whiskerDia << endl;
     }
     
-    //diaVec.push_back(whiskerDia);
     imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
     
 }
@@ -360,25 +359,23 @@ int main( int argc, char** argv )
         
         
         // Set motor velocity according to velocity profile
-        motorVel = pow(timeDiff, 3.0)/8000000 + 100000;
+        motorVel = pow(timeDiff, 3.0)/16200000 + 10000;
         linearVel = (double)motorVel/1000000.0;
         cout << "Setting target linear velocity to " << linearVel << " mm/s" << endl;
         vars = handle.get_variables();
         currVel = (double)vars.get_current_velocity() /1000000.0;
         motorPos = vars.get_current_position();
         linearPos = (-7 * (double)motorPos / 688) + (7 * (double)EXPECTED_START_POS / 688); // DO NOT CHANGE. Equation converts motor position to linear actuator position (mm) 
-        posVec.push_back(linearPos);
         cout << "Current actuator position is " << linearPos << " mm" << endl;
 
         
         // Equation converting current arc length to current expected whisker diameter from whisker geometry profile
 		expectedDia = (tipDia - baseDia) * linearPos / arcLen + baseDia;
 		cout << "Expected Whisker Diameter: " << expectedDia << " um" << endl;
-		diaVec.push_back(expectedDia);
 
         
         // Coded limit switch
-        if(linearPos > 300)
+        if(linearPos > 260)
         {
 			cout << "Actuator limit reached... Stopping motor" << endl;
 			handle.set_target_velocity(0);
@@ -390,17 +387,21 @@ int main( int argc, char** argv )
         WhiskerDiameter(0, 0);
         cout << endl;
         cout << endl;
+        
+        // Append current actuator position and whisker diameter to respective vector for graphing
+        posVec.push_back(linearPos);
+        diaVec.push_back(whiskerDia);
 
         if(whiskerDia > expectedDia+expectedDia*0.05)
         {
-            motorVel += motorVel*0.5;
+            motorVel += motorVel*0.4;
             cout << "Dia. too large. Increasing velocity..." << endl;
             cout << endl;
             cout << endl;
         }
         else if(whiskerDia < expectedDia-expectedDia*0.05)
         {
-            motorVel -= motorVel*0.5;
+            motorVel -= motorVel*0.4;
             cout << "Dia. too small. Decreasing velocity..." << endl;
             cout << endl;
             cout << endl;
@@ -429,6 +430,12 @@ int main( int argc, char** argv )
     handle.set_target_velocity(0);
     dataFile.close();
     
+    // Make sure position and diameter vectors are same size
+    if (posVec.size() > diaVec.size())
+    {
+        posVec.pop_back();
+    }
+    
     // Draw Linear Actuator Position vs. Whisker Diameter line graph
     RGBABitmapImageReference *imageRef = CreateRGBABitmapImageReference();
     
@@ -455,6 +462,9 @@ int main( int argc, char** argv )
     vector<double> *pngData = ConvertToPNG(imageRef->image);
 	WriteToFile(pngData, "plot.png");
 	DeleteImage(imageRef->image); 
+    
+    cout << "posVec size:  " << posVec.size() << endl;
+    cout << "diaVec size:  " << diaVec.size() << endl;
     
     return 0;
 }
