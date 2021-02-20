@@ -37,9 +37,16 @@ int tipDia = 25; // Tip diameter in microns
 int arcLen = 200; // Whisker arc length in mm 
 int timeLimit = 120000; // Max amount of time whisker drawing process will take in ms
 
+// Computer vision parameters 
 int lowThreshold = 190;
 int n_erode_dilate = 1;
 const int kernel_size = 5;
+
+// PID control
+float Kp = 1;
+float Ki = 1;
+float Kd = 1;
+float error_prev = 0;
 
 static void WhiskerDiameter(int, void*)
 {
@@ -382,9 +389,13 @@ int main( int argc, char** argv )
 			break;
 		}	
         
-        //Measure whisker diameter and adjust motor velocity
+        //Measure whisker diameter and calculate error
         whiskerDia = expectedDia;
         WhiskerDiameter(0, 0);
+        float error = expectedDia - whiskerDia;
+        float output = Kp * error;
+        error_prev = error;
+        motorVel += output;
         cout << endl;
         cout << endl;
         
@@ -392,16 +403,14 @@ int main( int argc, char** argv )
         posVec.push_back(linearPos);
         diaVec.push_back(whiskerDia);
 
-        if(whiskerDia > expectedDia+expectedDia*0.05)
+        if(error > 0)
         {
-            motorVel += motorVel*0.4;
             cout << "Dia. too large. Increasing velocity..." << endl;
             cout << endl;
             cout << endl;
         }
-        else if(whiskerDia < expectedDia-expectedDia*0.05)
+        else if(error < 0)
         {
-            motorVel -= motorVel*0.4;
             cout << "Dia. too small. Decreasing velocity..." << endl;
             cout << endl;
             cout << endl;
@@ -463,8 +472,6 @@ int main( int argc, char** argv )
 	WriteToFile(pngData, "plot.png");
 	DeleteImage(imageRef->image); 
     
-    cout << "posVec size:  " << posVec.size() << endl;
-    cout << "diaVec size:  " << diaVec.size() << endl;
     
     return 0;
 }
