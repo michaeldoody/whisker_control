@@ -3,6 +3,7 @@
 #include "opencv2/opencv.hpp"
 #include "tic.hpp"
 #include <iostream>
+#include <fstream>
 #include <math.h>
 #include <unistd.h>
 #include <chrono>
@@ -33,6 +34,7 @@ int baseDia = 1700; // Base diameter in microns
 int tipDia = 25; // Tip diameter in microns
 int arcLen = 200; // Whisker arc length in mm 
 int timeLimit = 120000; // Max amount of time whisker drawing process will take in ms
+bool isTrackLimitReached = false;
 
 // Computer vision parameters 
 int lowThreshold = 190;
@@ -383,6 +385,7 @@ int main( int argc, char** argv )
         {
 			cout << "Actuator limit reached... Stopping motor" << endl;
 			handle.set_target_velocity(0);
+			isTrackLimitReached = true;
 			break;
 		}	
         
@@ -429,6 +432,11 @@ int main( int argc, char** argv )
             break;
         }
     }
+    
+    if(isTrackLimitReached)
+    {
+		dataFile << "--- TRACK LIMIT REACHED ---" << endl;
+	}
     
     handle.set_target_velocity(0);
     dataFile.close();  
