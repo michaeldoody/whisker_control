@@ -1,8 +1,6 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/opencv.hpp"
-#include "plots/pbPlots.hpp"
-#include "plots/supportLib.hpp"
 #include "tic.hpp"
 #include <iostream>
 #include <math.h>
@@ -28,7 +26,6 @@ Mat cdst, cdstP;
 
 float whiskerDia, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 float linearPos, linearVel, currVel, expectedDia;
-vector<double> diaVec{}, posVec{}; // Saves data for Linear Actuator Position vs. Whisker Diameter line graph
 int32_t motorPos, startPos, motorVel;
 int32_t EXPECTED_START_POS = 35000; // Position motor resets to at beginning of each trial. Update only if motor has stalled
 
@@ -399,10 +396,7 @@ int main( int argc, char** argv )
         cout << endl;
         cout << endl;
         
-        // Append current actuator position and whisker diameter to respective vector for graphing
-        posVec.push_back(linearPos);
-        diaVec.push_back(whiskerDia);
-
+        
         if(error > 0)
         {
             cout << "Dia. too large. Increasing velocity..." << endl;
@@ -437,41 +431,7 @@ int main( int argc, char** argv )
     }
     
     handle.set_target_velocity(0);
-    dataFile.close();
-    
-    // Make sure position and diameter vectors are same size
-    if (posVec.size() > diaVec.size())
-    {
-        posVec.pop_back();
-    }
-    
-    // Draw Linear Actuator Position vs. Whisker Diameter line graph
-    RGBABitmapImageReference *imageRef = CreateRGBABitmapImageReference();
-    
-    ScatterPlotSeries *series = GetDefaultScatterPlotSeriesSettings();
-	series->xs = &posVec;
-	series->ys = &diaVec;
-	series->linearInterpolation = true;
-	//series->lineType = toVector(L"dashed");
-	series->lineThickness = 2;
-	series->color = GetGray(0.3);
-    
-    ScatterPlotSettings *settings = GetDefaultScatterPlotSettings();
-	settings->width = 1200;
-	settings->height = 800;
-	settings->autoBoundaries = true;
-	settings->autoPadding = true;
-	settings->title = toVector(L"Whisker Diameter vs Linear Actuator Distance Traveled");
-	settings->xLabel = toVector(L"Linear Actuator Distance Traveled (mm)");
-	settings->yLabel = toVector(L"Whisker Dia. (microns)");
-	settings->scatterPlotSeries->push_back(series);
-    
-    //DrawScatterPlot(imageRef, 1200, 800, &posVec, &diaVec);
-    DrawScatterPlotFromSettings(imageRef, settings);
-    vector<double> *pngData = ConvertToPNG(imageRef->image);
-	WriteToFile(pngData, "plot.png");
-	DeleteImage(imageRef->image); 
-    
+    dataFile.close();  
     
     return 0;
 }
