@@ -10,9 +10,9 @@
 
 /*
 Tic Input and Motor Settings in Pololu Tic Control Center GUI
-Max Speed: 500000000
+Max Speed: 180000000
 Starting Speed: 2500
-Max Acceleration: 40000
+Max Acceleration: 1800000
 Step Mode: 1/4 step
 Current Limit: 2005 mA
 */
@@ -46,6 +46,7 @@ float Kp = 1;
 float Ki = 1;
 float Kd = 1;
 float error_prev = 0;
+float errorThresh = 10; // 10 micron threshold
 
 static void WhiskerDiameter(int, void*)
 {
@@ -400,13 +401,13 @@ int main( int argc, char** argv )
         cout << endl;
         
         
-        if(error > 0)
+        if(error > errorThresh)
         {
             cout << "Dia. too large. Increasing velocity..." << endl;
             cout << endl;
             cout << endl;
         }
-        else if(error < 0)
+        else if(error < -errorThresh)
         {
             cout << "Dia. too small. Decreasing velocity..." << endl;
             cout << endl;
