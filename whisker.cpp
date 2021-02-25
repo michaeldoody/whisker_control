@@ -28,11 +28,11 @@ Mat cdst, cdstP;
 float whiskerDia, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 float linearPos, linearVel, currVel, expectedDia;
 int32_t motorPos, startPos, motorVel;
-int32_t EXPECTED_START_POS = 35000; // Position motor resets to at beginning of each trial. Update only if motor has stalled
+int32_t EXPECTED_START_POS = 33500; // Position motor resets to at beginning of each trial. Update only if motor has stalled or skipped step(s)
 
 int baseDia = 1700; // Base diameter in microns
 int tipDia = 25; // Tip diameter in microns
-int arcLen = 200; // Whisker arc length in mm 
+int arcLen = 335; // Whisker arc length in mm 
 int timeLimit = 120000; // Max amount of time whisker drawing process will take in ms
 bool isTrackLimitReached = false;
 
@@ -42,7 +42,7 @@ int n_erode_dilate = 1;
 const int kernel_size = 5;
 
 // PID control
-float Kp = 1;
+float Kp = 500;
 float Ki = 1;
 float Kd = 1;
 float error_prev = 0;
@@ -366,7 +366,7 @@ int main( int argc, char** argv )
         
         
         // Set motor velocity according to velocity profile
-        motorVel = pow(timeDiff, 3.0)/16200000 + 10000;
+        motorVel = pow(timeDiff, 3.0)/7900000 + 50000;
         linearVel = (double)motorVel/1000000.0;
         cout << "Setting target linear velocity to " << linearVel << " mm/s" << endl;
         vars = handle.get_variables();
@@ -381,33 +381,24 @@ int main( int argc, char** argv )
 		cout << "Expected Whisker Diameter: " << expectedDia << " um" << endl;
 
         
-        // Coded limit switch
-        if(linearPos > 260)
-        {
-			cout << "Actuator limit reached... Stopping motor" << endl;
-			handle.set_target_velocity(0);
-			isTrackLimitReached = true;
-			break;
-		}	
-        
         //Measure whisker diameter and calculate error
         whiskerDia = expectedDia;
         WhiskerDiameter(0, 0);
-        float error = expectedDia - whiskerDia;
-        float output = Kp * error;
-        error_prev = error;
+        float errorDia = whiskerDia - expectedDia;
+        float output = Kp * errorDia;
+        error_prev = errorDia;
         motorVel += output;
         cout << endl;
         cout << endl;
         
         
-        if(error > errorThresh)
+        if(errorDia > errorThresh)
         {
             cout << "Dia. too large. Increasing velocity..." << endl;
             cout << endl;
             cout << endl;
         }
-        else if(error < -errorThresh)
+        else if(errorDia < -errorThresh)
         {
             cout << "Dia. too small. Decreasing velocity..." << endl;
             cout << endl;
@@ -426,6 +417,16 @@ int main( int argc, char** argv )
 
 		dataFile << timeDiff << "," << linearVel << "," << currVel << "," << linearPos << "," << expectedDia << "," << whiskerDia << endl;
 
+        
+        // Coded limit switch
+        if(linearPos > 335)
+        {
+			cout << "Actuator limit reached... Stopping motor" << endl;
+			handle.set_target_velocity(0);
+			isTrackLimitReached = true;
+			break;
+		}	
+        
         if (waitKey(10) == 27)
         {
             cout << "Esc key is pressed by user. Stopping the video" << endl;
