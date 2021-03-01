@@ -1,10 +1,25 @@
 # Whisker Drawing Mechanism
-Check out this project in my portfolio at https://michaeldoody.github.io/
+
+## Table of Contents
+- [Project Objectives](#project-objectives)
+- [Design Specifications](#design-specifications)
+- [Materials](#materials)
+- [System Design](#system-design)
+- [Computer Vision](#computer-vision)
+- [Repository Structure](#repository-structure)
+- [Installation](#installation)
+- [Usage](#usage)
+    -[Camera Calibration](#camera-calibration)
+    -[Whisker Drawing](#whisker-drawing)
+- [Links](#links)
+
 ## Project Objectives
 
 The purpose of this project is to design a device that manufactures robotic whisker sensors by drawing polymer plastic filament from an oven. It must be able to inspect the diameter of the whisker and adjust the draw speed accordingly to match a specific geometric profile. This process must be quick and repeatable. 
 
 The image below shows how the shape of the filament develops over time. The heated length of the filament is brought to the plastic's glass transition temperature. Then the filament is pulled away from the oven by the drawing mechanism to create a taper.
+
+Check out this project in my portfolio at https://michaeldoody.github.io/.
  
  
 ![Filament Drawing Process](media/whisker_drawing.png)
@@ -38,6 +53,7 @@ Given the dimensions of an artificial whisker, the mechanism must:
 - FLIR ONE Gen 3 Thermal Camera Smart Phone Attachment
 - Microscope Camera Calibration Slide Ruler
 - Low-Friction Tape Made with Teflon
+
 
 ## System Design
 A block diagram of the system is depicted below. The Raspberry Pi controls the velocity of the lead screw linear actuator via the Tic motor controller. A High Quality Raspberry Pi camera is connected to the RasPi. 
@@ -78,6 +94,12 @@ You can clone this GitHub repository: `git clone https://github.com/michaeldoody
 Detailed instuctions for downloading Tic motor controller software and source code can be found here: https://www.pololu.com/docs/0J71/3.2
 
 And instuctions for installing OpenCV on Raspberry Pi are here: https://www.learnopencv.com/install-opencv-4-on-raspberry-pi/
+
+## Usage
+
+### Camera Calibration
+
+### Whisker Drawing
 
 ## Links
 Check out this project in my portfolio at https://michaeldoody.github.io/
