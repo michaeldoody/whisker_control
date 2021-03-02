@@ -9,8 +9,8 @@
 - [Repository Structure](#repository-structure)
 - [Installation](#installation)
 - [Usage](#usage)
-    -[Camera Calibration](#camera-calibration)
-    -[Whisker Drawing](#whisker-drawing)
+    - [Camera Calibration](#camera-calibration)
+    - [Whisker Drawing](#whisker-drawing)
 - [Links](#links)
 
 ## Project Objectives
@@ -83,17 +83,22 @@ Next, I used the script `cam_calibration.cpp` to measure the reticle in pixels a
     .
     ├── cam_calibration.cpp      # Outputs the pixels/μm constant when the calibration slide
     ├                             reticle is in view of the camera
-    ├── whisker.cpp              # Velocity control loop (WIP)
-    ├── media                    # Image files folder
+    ├── whisker.cpp              # Velocity control loop
+    ├── data/                     # Data from each whisker drawing trial is stored here in .csv files
+    ├── media/                    # Image files folder
     └── README.md
 
 ## Installation
 
 You can clone this GitHub repository: `git clone https://github.com/michaeldoody/whisker_control`
 
-Detailed instuctions for downloading Tic motor controller software and source code can be found here: https://www.pololu.com/docs/0J71/3.2
+The following packages (Tic software, OpenCV, and gcc) are already installed on the Raspberry Pi 4 that I used for this project, so if you are using the same one I used, you can skip to [Usage](#usage).
+
+Detailed instuctions for downloading the Tic motor controller software for Raspberry Pi and source code can be found here: https://www.pololu.com/docs/0J71/3.2
 
 And instuctions for installing OpenCV on Raspberry Pi are here: https://www.learnopencv.com/install-opencv-4-on-raspberry-pi/
+
+Install GNU C++ Development Tools on the RasbPi 4 using `sudo apt-get install gcc` if it is not already installed.
 
 ## Usage
 

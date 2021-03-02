@@ -366,7 +366,7 @@ int main( int argc, char** argv )
         
         
         // Set motor velocity according to velocity profile
-        motorVel = pow(timeDiff, 3.0)/7900000 + 50000;
+        motorVel = pow(timeDiff, 3.0)/600000 + 10000;
         linearVel = (double)motorVel/1000000.0;
         cout << "Setting target linear velocity to " << linearVel << " mm/s" << endl;
         vars = handle.get_variables();
