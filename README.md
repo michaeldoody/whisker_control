@@ -94,15 +94,25 @@ You can clone this GitHub repository: `git clone https://github.com/michaeldoody
 
 The following packages (Tic software, OpenCV, and gcc) are already installed on the Raspberry Pi 4 that I used for this project, so if you are using the same one I used, you can skip to [Usage](#usage).
 
-Detailed instuctions for downloading the Tic motor controller software for Raspberry Pi and source code can be found here: https://www.pololu.com/docs/0J71/3.2
+Detailed instuctions for downloading the Tic motor controller software for Raspberry Pi and source code can be found [here](https://www.pololu.com/docs/0J71/3.2).
 
-And instuctions for installing OpenCV on Raspberry Pi are here: https://www.learnopencv.com/install-opencv-4-on-raspberry-pi/
+And instuctions for installing OpenCV on Raspberry Pi are [here](https://www.learnopencv.com/install-opencv-4-on-raspberry-pi/).
 
-Install GNU C++ Development Tools on the RasbPi 4 using `sudo apt-get install gcc` if it is not already installed.
+Install GNU C++ Development Tools on the RasPi 4 using `sudo apt-get install gcc` if it is not already installed.
 
 ## Usage
+To use the RasPi, you can either connect a monitor to it via its HDMI port along with a mouse and keyboard, or you can connect remotely by using SSH. To SSH using Linux or Mac OS, make sure the RasPi is powered on, and type in your Linux / Mac:
+
+`ssh -X pi@<IP>`
+
+where you replace `<IP>` with your RasPi's IP address. The `-X` is so that you can open up and use GUIs remotely. You will be prompted to type in your RasPi password. If you need help determining your RasPi's IP address, use a different OS for remote access, or need help troubleshooting, please see the [Raspberry Pi documentation on SSH](https://www.raspberrypi.org/documentation/remote-access/ssh/). 
+
+To shutdown and exit the RasPi remotely:
+`sudo shutdown -h -P now`
 
 ### Camera Calibration
+The purpose of `cam_calibration` is to measure how many pixel lengths equal a micron while a whisker filament and a calibration slide are in focus of the camera. The resulting number is saved in `ppum.txt` as a decimal. This process only needs to be done once, given that the camera lens' focus is not adjusted any time after calibrating.
+
 
 ### Whisker Drawing
 
