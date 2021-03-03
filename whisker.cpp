@@ -25,16 +25,16 @@ Mat src, src_gray, blur_gray;
 Mat dst, detected_edges, dilated;
 Mat cdst, cdstP;
 
-float whiskerDia, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
+float whiskerDia, prevDia, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 float linearPos, linearVel, currVel, expectedDia;
 int32_t motorPos, startPos, motorVel;
-int32_t EXPECTED_START_POS = 33500; // Position motor resets to at beginning of each trial. Update only if motor has stalled or skipped step(s)
+int32_t EXPECTED_START_POS = 0; // Position motor resets to at beginning of each trial. Update only if motor has stalled or skipped step(s)
 
-int baseDia = 1700; // Base diameter in microns
+int baseDia = 1750; // Base diameter in microns
 int tipDia = 25; // Tip diameter in microns
-int arcLen = 335; // Whisker arc length in mm 
-int timeLimit = 120000; // Max amount of time whisker drawing process will take in ms
+int arcLen = 325; // Whisker arc length in mm 
 bool isTrackLimitReached = false;
+bool firstLoop = true;
 
 // Computer vision parameters 
 int lowThreshold = 190;
@@ -42,7 +42,7 @@ int n_erode_dilate = 1;
 const int kernel_size = 5;
 
 // PID control
-float Kp = 500;
+float Kp = 1200;
 float Ki = 1;
 float Kd = 1;
 float error_prev = 0;
@@ -366,7 +366,7 @@ int main( int argc, char** argv )
         
         
         // Set motor velocity according to velocity profile
-        motorVel = pow(timeDiff, 3.0)/600000 + 10000;
+        motorVel = pow(timeDiff, 3.0)/40000 + 100000;
         linearVel = (double)motorVel/1000000.0;
         cout << "Setting target linear velocity to " << linearVel << " mm/s" << endl;
         vars = handle.get_variables();
@@ -383,7 +383,20 @@ int main( int argc, char** argv )
         
         //Measure whisker diameter and calculate error
         whiskerDia = expectedDia;
+        if(firstLoop)
+        {
+            firstLoop = false;
+            prevDia = expectedDia;
+        }
         WhiskerDiameter(0, 0);
+        
+        // If camera drastically miscalculates whisker diameter, use the previous diameter
+        if(whiskerDia < .5*prevDia)
+        {
+            whiskerDia = prevDia;
+        }
+        prevDia = whiskerDia;
+        
         float errorDia = whiskerDia - expectedDia;
         float output = Kp * errorDia;
         error_prev = errorDia;
@@ -419,7 +432,7 @@ int main( int argc, char** argv )
 
         
         // Coded limit switch
-        if(linearPos > 335)
+        if(linearPos > arcLen)
         {
 			cout << "Actuator limit reached... Stopping motor" << endl;
 			handle.set_target_velocity(0);
@@ -427,7 +440,7 @@ int main( int argc, char** argv )
 			break;
 		}	
         
-        if (waitKey(10) == 27)
+        if (waitKey(5) == 27)
         {
             cout << "Esc key is pressed by user. Stopping the video" << endl;
             handle.set_target_velocity(0);
