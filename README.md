@@ -9,6 +9,7 @@
 - [Repository Structure](#repository-structure)
 - [Installation](#installation)
 - [Usage](#usage)
+    - [Motor Settings](#motor-settings)
     - [Camera Calibration](#camera-calibration)
     - [Whisker Drawing](#whisker-drawing)
 - [Links](#links)
@@ -101,20 +102,34 @@ And instuctions for installing OpenCV on Raspberry Pi are [here](https://www.lea
 Install GNU C++ Development Tools on the RasPi 4 using `sudo apt-get install gcc` if it is not already installed.
 
 ## Usage
+WARNING: Keep hands and cords away from the linear actuator while it is powered on. Use heat resistant gloves when inserting and removing the plastic filament from the heated oven.
+
 To use the RasPi, you can either connect a monitor to it via its HDMI port along with a mouse and keyboard, or you can connect remotely by using SSH. To SSH using Linux or Mac OS, make sure the RasPi is powered on, and type in your Linux / Mac:
 
 `ssh -X pi@<IP>`
 
-where you replace `<IP>` with your RasPi's IP address. The `-X` is so that you can open up and use GUIs remotely. You will be prompted to type in your RasPi password. If you need help determining your RasPi's IP address, use a different OS for remote access, or need help troubleshooting, please see the [Raspberry Pi documentation on SSH](https://www.raspberrypi.org/documentation/remote-access/ssh/). 
+where you replace `<IP>` with your RasPi's IP address. The `-X` is so that you can open up and use GUIs remotely. You will be prompted to type in your RasPi password. After powering on the RasPi, it may take a minute until it allows you to connect, so if you eget an error saying `ssh: connect to host <IP> port 22: No route to host`, keep trying the ssh command until you are prompted for your password. If you need help determining your RasPi's IP address, use a different OS for remote access, or need help troubleshooting, please see the [Raspberry Pi documentation on SSH](https://www.raspberrypi.org/documentation/remote-access/ssh/). 
 
 To shutdown and exit the RasPi remotely:
 `sudo shutdown -h -P now`
 
+### Motor Settings
+
 ### Camera Calibration
 The purpose of `cam_calibration` is to measure how many pixel lengths equal a micron while a whisker filament and a calibration slide are in focus of the camera. The resulting number is saved in `ppum.txt` as a decimal. This process only needs to be done once, given that the camera lens' focus is not adjusted any time after calibrating.
 
+```shell
+#Change to the whisker directory
+cd Documents/whisker_control
+
+```
+Compile `cam_calibration.cpp` by typing in the command line:
+`g++ "cam_calibration.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "cam_calibration"`
 
 ### Whisker Drawing
+Compile `whisker.cpp` by typing in the command line:
+`g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whisker"  (in directory: /home/pi/Documents/whisker_control)`
+
 
 ## Links
 Check out this project in my portfolio at https://michaeldoody.github.io/
