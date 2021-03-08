@@ -53,8 +53,9 @@ Given the dimensions of an artificial whisker, the mechanism must:
 - Electric Warming Tray with Adjustable Temperature Control
 - 24V 4A 100W Power Supply Adapter
 - Cable Assembly 2.1mm ID, 5.5mm OD Jack to Wire Leads
-- FLIR ONE Gen 3 Thermal Camera Smart Phone Attachment
+- Infrared Thermometer
 - Microscope Camera Calibration Slide Ruler
+- PolyMax<sup>TM</sup> PC 3D Printing Filament (1.75 mm diameter)
 - Low-Friction Tape Made with Teflon
 
 
@@ -136,22 +137,32 @@ Navigate over to the Input an motor settings tab. In the Motor box, make sure th
 
 Detailed documentation on these settings can be found [here](https://www.pololu.com/docs/0J71/4.3).
 
-Leave the Tic GUI open for when you are drawing whiskers.
+Leave the Tic GUI open for when you are calibrating the camera and drawing whiskers.
 
 ### Camera Calibration
 The purpose of `cam_calibration` is to measure how many pixel lengths equal a micron while a whisker filament and a calibration slide are in focus of the camera. The resulting number is saved in `ppum.txt` as a decimal. This process only needs to be done once, given that the camera lens' focus is not adjusted any time after calibrating.
 
+#### Calibration Instructions
+1. Plug in the power adapter connected to the Tic. Open the Tic Gui. In the "Set Target" box, select the "Set velocity" radio button and the "Return slider to zero when it is released" checkmark button. Click the green Resume button at the bottom of the GUI to energize the motor. Use the slider to move the actuator to its greatest position before reaching the end of the track. You can view the current motor position in the "Operation" box.
+2. Cut a length of 3D printing filament ~500 mm long. PolyMax<sup>TM</sup> PC was used for this project (1.75 mm diameter, 113&deg;C glass transition temperature). Feed the filament through the front of the oven. Clip one end of the filament to the metal binder clip. Allow ~4 cm between between the oven exit and the binder clip. Secure the other end with a vice that is attached to the table.
+3. Cut a generous portion of aluminum foil in two. Fold both in half six times.  
+
 ```shell
 # Change to the whisker directory
 cd Documents/whisker_control
-
+# Compile cam_calibration (only need to do this once after editing cam_calibration.cpp)
+g++ "cam_calibration.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "cam_calibration"
 ```
-Compile `cam_calibration.cpp` by typing in the command line:
-`g++ "cam_calibration.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "cam_calibration"`
+
 
 ### Whisker Drawing
-Compile `whisker.cpp` by typing in the command line:
-`g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whisker"  (in directory: /home/pi/Documents/whisker_control)`
+```shell
+# Change to the whisker directory
+cd Documents/whisker_control
+# Compile `whisker.cpp`
+g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whisker"
+```
+
 
 
 ### Quick Guide
