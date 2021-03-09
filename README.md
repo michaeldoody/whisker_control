@@ -12,6 +12,8 @@
     - [Motor Settings](#motor-settings)
     - [Camera Calibration](#camera-calibration)
     - [Whisker Drawing](#whisker-drawing)
+- [Quick Guide](#quick-guide)
+- [Next Steps](#next-steps)
 - [Links](#links)
 
 ## Project Objectives
@@ -42,7 +44,7 @@ Given the dimensions of an artificial whisker, the mechanism must:
 ## Materials
 - V-Slot® NEMA 17 Linear Actuator Bundle (Lead Screw), 400m stroke
 - NEMA 17 Stepper Motor
-- Tic 36v4 USB Multi-Interface High-Power Stepper Motor Controller
+- Tic 36v4 USB Multi-Interface High-Power Stepper Motor Controller [(User's Guide)](https://www.pololu.com/docs/0J71)
 - Raspberry Pi 4
 - Raspberry Pi High Quality Camera
 - Monocular Max 300x Zoom C-Mount Glass Lens
@@ -51,8 +53,9 @@ Given the dimensions of an artificial whisker, the mechanism must:
 - Electric Warming Tray with Adjustable Temperature Control
 - 24V 4A 100W Power Supply Adapter
 - Cable Assembly 2.1mm ID, 5.5mm OD Jack to Wire Leads
-- FLIR ONE Gen 3 Thermal Camera Smart Phone Attachment
+- Infrared Thermometer
 - Microscope Camera Calibration Slide Ruler
+- PolyMax<sup>TM</sup> PC 3D Printing Filament (1.75 mm diameter)
 - Low-Friction Tape Made with Teflon
 
 
@@ -106,29 +109,66 @@ WARNING: Keep hands and cords away from the linear actuator while it is powered 
 
 To use the RasPi, you can either connect a monitor to it via its HDMI port along with a mouse and keyboard, or you can connect remotely by using SSH. To SSH using Linux or Mac OS, make sure the RasPi is powered on, and type in your Linux / Mac:
 
+```shell
 `ssh -X pi@<IP>`
+```
 
 where you replace `<IP>` with your RasPi's IP address. The `-X` is so that you can open up and use GUIs remotely. You will be prompted to type in your RasPi password. After powering on the RasPi, it may take a minute until it allows you to connect, so if you eget an error saying `ssh: connect to host <IP> port 22: No route to host`, keep trying the ssh command until you are prompted for your password. If you need help determining your RasPi's IP address, use a different OS for remote access, or need help troubleshooting, please see the [Raspberry Pi documentation on SSH](https://www.raspberrypi.org/documentation/remote-access/ssh/). 
 
 To shutdown and exit the RasPi remotely:
-`sudo shutdown -h -P now`
 
-### Motor Settings
+```shell
+`sudo shutdown -h -P now`
+```
+
+### Tic GUI and Motor Settings
+Connect the Tic Motor Controller to the RasPi 4 via USB. Power on the RasPi. Whether working on the RasPi with a monitor or remotely, open up the Pololu Tic Control Center (Tic GUI):
+
+```shell
+ticgui
+```
+
+Navigate over to the Input an motor settings tab. In the Motor box, make sure that the settings are set to:
+- Max Speed: 180000000
+- Starting Speed: 2500
+- Max Acceleration: 1800000
+- Step Mode: 1/4 step
+- Current Limit: 2005 mA
+
+Detailed documentation on these settings can be found [here](https://www.pololu.com/docs/0J71/4.3).
+
+Leave the Tic GUI open for when you are calibrating the camera and drawing whiskers.
 
 ### Camera Calibration
 The purpose of `cam_calibration` is to measure how many pixel lengths equal a micron while a whisker filament and a calibration slide are in focus of the camera. The resulting number is saved in `ppum.txt` as a decimal. This process only needs to be done once, given that the camera lens' focus is not adjusted any time after calibrating.
 
-```shell
-#Change to the whisker directory
-cd Documents/whisker_control
+#### Calibration Instructions
+1. Plug in the power adapter connected to the Tic. Open the Tic Gui. In the "Set Target" box, select the "Set velocity" radio button and the "Return slider to zero when it is released" checkmark button. Click the green Resume button at the bottom of the GUI to energize the motor. Use the slider to move the actuator to its greatest position before reaching the end of the track. You can view the current motor position in the "Operation" box.
+2. Cut a length of 3D printing filament ~500 mm long. PolyMax<sup>TM</sup> PC was used for this project (1.75 mm diameter, 113&deg;C glass transition temperature). Feed the filament through the front of the oven. Clip one end of the filament to the metal binder clip. Allow ~4 cm between between the oven exit and the binder clip. Secure the other end with a vice that is attached to the table.
+3. Cut a generous portion of aluminum foil in two. Fold both in half six times.  
 
+```shell
+# Change to the whisker directory
+cd Documents/whisker_control
+# Compile cam_calibration (only need to do this once after editing cam_calibration.cpp)
+g++ "cam_calibration.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "cam_calibration"
 ```
-Compile `cam_calibration.cpp` by typing in the command line:
-`g++ "cam_calibration.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "cam_calibration"`
+
 
 ### Whisker Drawing
-Compile `whisker.cpp` by typing in the command line:
-`g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whisker"  (in directory: /home/pi/Documents/whisker_control)`
+```shell
+# Change to the whisker directory
+cd Documents/whisker_control
+# Compile `whisker.cpp`
+g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whisker"
+```
+
+
+
+### Quick Guide
+
+
+### Next Steps
 
 
 ## Links
