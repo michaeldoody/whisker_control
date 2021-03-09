@@ -74,22 +74,18 @@ The finished setup looks like this:
 
 ## Computer Vision
 
-In order to accurately measure the whisker diameter, the camera and lens must be first focused on a calibration slide's  1mm x 1mm reticle stacked on top of a sample of the plastic filament.
+In order to accurately measure the whisker diameter, the camera and lens must be first focused on a calibration slide's 1mm x 1mm reticle stacked on top of a sample of the plastic filament.
 
-![Whisker Calibration](media/whisker_calibration.png)
-
-Next, I used the script `cam_calibration.cpp` to measure the reticle in pixels and calculate pixels/μm (displayed below). This project is still a work in progress, so the next step is to finish the script `whisker.cpp` which takes the pixels/μm constant, measures the diameter of the whisker section that is directly outside the oven, and performs the velocity control loop.
-
-![Camera Calibration](media/cam_calibration.png)
+Next, I used the script `cam_calibration.cpp` to measure the length of the reticle in pixels and calculate pixels/μm (displayed below).
 
 ## Repository Structure
 
     .
     ├── cam_calibration.cpp      # Outputs the pixels/μm constant when the calibration slide
-    ├                             reticle is in view of the camera
+    ├                              reticle is in view of the camera
     ├── whisker.cpp              # Velocity control loop
-    ├── data/                     # Data from each whisker drawing trial is stored here in .csv files
-    ├── media/                    # Image files folder
+    ├── data/                    # Data from each whisker drawing trial is stored here in .csv files
+    ├── media/                   # Image files folder
     └── README.md
 
 ## Installation
@@ -110,7 +106,7 @@ WARNING: Keep hands and cords away from the linear actuator while it is powered 
 To use the RasPi, you can either connect a monitor to it via its HDMI port along with a mouse and keyboard, or you can connect remotely by using SSH. To SSH using Linux or Mac OS, make sure the RasPi is powered on, and type in your Linux / Mac:
 
 ```shell
-`ssh -X pi@<IP>`
+ssh -X pi@<IP>
 ```
 
 where you replace `<IP>` with your RasPi's IP address. The `-X` is so that you can open up and use GUIs remotely. You will be prompted to type in your RasPi password. After powering on the RasPi, it may take a minute until it allows you to connect, so if you eget an error saying `ssh: connect to host <IP> port 22: No route to host`, keep trying the ssh command until you are prompted for your password. If you need help determining your RasPi's IP address, use a different OS for remote access, or need help troubleshooting, please see the [Raspberry Pi documentation on SSH](https://www.raspberrypi.org/documentation/remote-access/ssh/). 
@@ -118,7 +114,7 @@ where you replace `<IP>` with your RasPi's IP address. The `-X` is so that you c
 To shutdown and exit the RasPi remotely:
 
 ```shell
-`sudo shutdown -h -P now`
+sudo shutdown -h -P now
 ```
 
 ### Tic GUI and Motor Settings
@@ -128,7 +124,7 @@ Connect the Tic Motor Controller to the RasPi 4 via USB. Power on the RasPi. Whe
 ticgui
 ```
 
-Navigate over to the Input an motor settings tab. In the Motor box, make sure that the settings are set to:
+Navigate over to the Input an motor settings tab. In the "Motor" box, make sure that the settings are set to:
 - Max Speed: 180000000
 - Starting Speed: 2500
 - Max Acceleration: 1800000
@@ -143,17 +139,30 @@ Leave the Tic GUI open for when you are calibrating the camera and drawing whisk
 The purpose of `cam_calibration` is to measure how many pixel lengths equal a micron while a whisker filament and a calibration slide are in focus of the camera. The resulting number is saved in `ppum.txt` as a decimal. This process only needs to be done once, given that the camera lens' focus is not adjusted any time after calibrating.
 
 #### Calibration Instructions
-1. Plug in the power adapter connected to the Tic. Open the Tic Gui. In the "Set Target" box, select the "Set velocity" radio button and the "Return slider to zero when it is released" checkmark button. Click the green Resume button at the bottom of the GUI to energize the motor. Use the slider to move the actuator to its greatest position before reaching the end of the track. You can view the current motor position in the "Operation" box.
-2. Cut a length of 3D printing filament ~500 mm long. PolyMax<sup>TM</sup> PC was used for this project (1.75 mm diameter, 113&deg;C glass transition temperature). Feed the filament through the front of the oven. Clip one end of the filament to the metal binder clip. Allow ~4 cm between between the oven exit and the binder clip. Secure the other end with a vice that is attached to the table.
-3. Cut a generous portion of aluminum foil in two. Fold both in half six times.  
+1. Plug in the power adapter connected to the Tic. Open the Tic GUI. In the "Set Target" box, select the "Set velocity" radio button and the "Return slider to zero when it is released" checkmark button. Click the green Resume button at the bottom of the GUI to energize the motor. Use the slider to move the actuator to its greatest position before reaching the end of the track. You can view the current motor position in the "Operation" box.
+2. Cut a length of 3D printing filament ~500 mm long. PolyMax<sup>TM</sup> PC was used for this project (1.75 mm diameter, 113&deg;C glass transition temperature). Feed the filament through the front of the oven so that one end of the filament is exposed at either end of the oven. Clip one end of the filament to the metal binder clip. Allow ~4 cm between between the oven exit and the binder clip. Secure the other end with a vice that is attached to the table.
+3. Cut a generous portion of aluminum foil in two. Fold both in half six times, and lay one on each side of the exposed filament. Rest the calibration slide on the filament and two aluminum foil pieces so that the "1 DIV = 0.01mm" reticle is centered on the filament, shown below. Turn on the LED ring lamp.
 
+![Camera Calibration Setup](media/cam_cal_setup.png)
+
+4. From your RasPi command line:
 ```shell
 # Change to the whisker directory
 cd Documents/whisker_control
 # Compile cam_calibration (only need to do this once after editing cam_calibration.cpp)
 g++ "cam_calibration.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "cam_calibration"
+# Run cam_calibration
+./cam_calibration
 ```
+5. A window showing the camera video stream will appear. Center the filament and reticle, and straighten the crosshairs so that the x-axis is as horizontal as possible. Using the maginfication dial on the microscope, focus the camera lens so that the edges of the filament are as focused as possible while the reticle is still visible, yet blurry, as shown below. Press Space or S to capture the current video frame.
 
+![Whisker Calibration](media/whisker_calibration.png)
+
+6. A second window will appear that shows the image you just captures. Use your mouse to drag and drop a ROI box around the blurry reticle. Draw the box as tight as possible, like in the image below, to get an accurate measuremnt of the height and width of the crosshairs. To retry the process, press Esc and rerun the program. Once you have drawn an acurate ROI box, press the Spacebar to view the cropped image in a third window. Press the Spacebar again to save the Pixels Per Micrometer measurement to ppum.txt, or press Esc to cancel.
+
+![ROI](media/roi.png)
+
+The camera is now calibrated, and you are ready to draw whiskers!
 
 ### Whisker Drawing
 ```shell

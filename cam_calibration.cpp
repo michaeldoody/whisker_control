@@ -33,7 +33,7 @@ int main( int argc, char** argv )
 	return -1;
     }
     
-    cout << "Focus the camera lens on the camlibration slide reticle. Press Space or S to capture the current video frame." << endl;
+    cout << "Focus the camera lens on the calibration slide reticle. Press Space or S to capture the current video frame." << endl;
     cout << "Press Esc to exit the program." << endl;
   
     while (true)
