@@ -14,7 +14,7 @@ Mat src, src_gray;
 Mat dst, detected_edges;
 Mat cdst, cdstP;
 
-int lowThreshold = 200;
+int lowThreshold = 190;
 int n_erode_dilate = 1;
 const int kernel_size = 5;
 
@@ -32,6 +32,9 @@ int main( int argc, char** argv )
 	cin.get(); //wait for any key press
 	return -1;
     }
+    
+    cout << "Focus the camera lens on the camlibration slide reticle. Press Space or S to capture the current video frame." << endl;
+    cout << "Press Esc to exit the program." << endl;
   
     while (true)
     {
@@ -46,7 +49,8 @@ int main( int argc, char** argv )
 	namedWindow( "Whisker Calibration", WINDOW_AUTOSIZE );
 	imshow("Whisker Calibration", src);
 	
-	int key = waitKey(5);
+
+	int key = waitKey(10);
     
 	// Save image if Space or S key is pressed
 	if (key == 32 || key == 115)
@@ -59,52 +63,20 @@ int main( int argc, char** argv )
 	// Exit on Esc key press
 	if (key == 27)
 	{
-	    cout << "Esc key is pressed by user. Stoppig the video" << endl;
-	    break;
+	    cout << "Esc key is pressed by user. Exiting Camera Calibration" << endl;
+	    return 0;
 	}
     }
+    
   
     // Read captured image
-    Mat img = imread("whisker.jpg", 1);
+    Mat img = imread(img_name, 1);
   
-    // Select ROI
+    // User drags ROI box tightly around the calibration slide reticle
     Rect2d rect = selectROI(img);
-    //cout << "Height: " << rect.height << endl;
-    //cout << "Width: " << rect.width << endl;
     
     // Crop image 
     Mat imgCrop = img(rect);
-  
-    int largest_area=0;
-    int largest_contour_index=0;
-    Rect bounding_rect;
-    
-    Mat m = imgCrop.clone();
-    cvtColor(m,m,COLOR_BGR2GRAY);
-    GaussianBlur(m,m,Size(kernel_size,kernel_size),0,0);
-    Canny(m, m, lowThreshold, lowThreshold*3, kernel_size );
-    dilate(m, m, Mat(), Point(-1,-1), n_erode_dilate);
-    erode(m, m, Mat(), Point(-1,-1), n_erode_dilate);
-    
-    vector<vector<Point> > contours;
-    vector<Vec4i> hierarchy;
-    vector<cv::Point> points;
-    
-    // Find all contours in image
-    findContours(m, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE );
-	
-    //	Find largest contour (the calibration slide's mm crosshairs)
-    for(size_t i = 0; i < contours.size(); i++)
-    {
-	double area = contourArea(contours[i]);
-	
-	if(area > largest_area)
-	{
-	    largest_area = area;
-	    largest_contour_index = i;
-	    bounding_rect = boundingRect(contours[i]);
-	}
-    }
     
     // Calculate pixels per micrometer
     double height = rect.height; //bounding_rect.height;
@@ -117,10 +89,6 @@ int main( int argc, char** argv )
     cout << "Width: " << width << endl;
     cout << "Pixels Per Micrometer: " << pixels_per_um << endl;
     cout << "\n\n" << endl;
-
-    // Outline the calibration crosshairs and draw a rectangle around it
-    drawContours( imgCrop, contours, largest_contour_index, Scalar( 0, 255, 0 ), 1);
-    rectangle(imgCrop, bounding_rect.tl(), bounding_rect.br(), Scalar(100, 100, 200), 2, LINE_AA);
   
     dst.create( src.size(), src.type() );
     cvtColor( src, src_gray, COLOR_BGR2GRAY );
@@ -133,10 +101,17 @@ int main( int argc, char** argv )
     // Save pixels_per_um to txt file if Space or S key is pressed
     if (key == 32 || key == 115)
     {
-	    ofstream myfile;
+	ofstream myfile;
     	myfile.open ("ppum.txt");
-	    myfile << to_string(pixels_per_um);
-	    myfile.close();
+	myfile << to_string(pixels_per_um);
+	myfile.close();
+    }
+    
+    // Exit on Esc key press
+    if (key == 27)
+    {
+	cout << "Esc key is pressed by user. Exiting Camera Calibration" << endl;
+	return 0;
     }
     
     return 0;
