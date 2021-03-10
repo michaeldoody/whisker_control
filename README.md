@@ -9,7 +9,7 @@
 - [Repository Structure](#repository-structure)
 - [Installation](#installation)
 - [Usage](#usage)
-    - [Motor Settings](#motor-settings)
+    - [Tic GUI and Motor Settings](#tic-gui-and-motor-settings)
     - [Camera Calibration](#camera-calibration)
     - [Whisker Drawing](#whisker-drawing)
 - [Quick Guide](#quick-guide)
@@ -70,13 +70,13 @@ This setup allows the device to perform the following closed control loop. In or
 
 The finished setup looks like this:
 
-![Setup Labeled](media/setup_labeled.png)
+![Setup Labeled](media/setup.png)
 
 ## Computer Vision
 
 In order to accurately measure the whisker diameter, the camera and lens must be first focused on a calibration slide's 1mm x 1mm reticle stacked on top of a sample of the plastic filament.
 
-Next, I used the script `cam_calibration.cpp` to measure the length of the reticle in pixels and calculate pixels/μm (displayed below).
+Next, I used the script `cam_calibration.cpp` to measure the length of the reticle in pixels and calculate pixels/μm.
 
 ## Repository Structure
 
@@ -109,7 +109,7 @@ To use the RasPi, you can either connect a monitor to it via its HDMI port along
 ssh -X pi@<IP>
 ```
 
-where you replace `<IP>` with your RasPi's IP address. The `-X` is so that you can open up and use GUIs remotely. You will be prompted to type in your RasPi password. After powering on the RasPi, it may take a minute until it allows you to connect, so if you eget an error saying `ssh: connect to host <IP> port 22: No route to host`, keep trying the ssh command until you are prompted for your password. If you need help determining your RasPi's IP address, use a different OS for remote access, or need help troubleshooting, please see the [Raspberry Pi documentation on SSH](https://www.raspberrypi.org/documentation/remote-access/ssh/). 
+where you replace `<IP>` with your RasPi's IP address. The `-X` is so that you can open up and use GUIs remotely. You will be prompted to type in your RasPi password. After powering on the RasPi, it may take a minute until it allows you to connect, so if you get an error saying `ssh: connect to host <IP> port 22: No route to host`, keep trying the ssh command until you are prompted for your password. If you need help determining your RasPi's IP address, use a different OS for remote access, or need help troubleshooting, please see the [Raspberry Pi documentation on SSH](https://www.raspberrypi.org/documentation/remote-access/ssh/). 
 
 To shutdown and exit the RasPi remotely:
 
@@ -143,7 +143,7 @@ The purpose of `cam_calibration` is to measure how many pixel lengths equal a mi
 2. Cut a length of 3D printing filament ~500 mm long. PolyMax<sup>TM</sup> PC was used for this project (1.75 mm diameter, 113&deg;C glass transition temperature). Feed the filament through the front of the oven so that one end of the filament is exposed at either end of the oven. Clip one end of the filament to the metal binder clip. Allow ~4 cm between between the oven exit and the binder clip. Secure the other end with a vice that is attached to the table.
 3. Cut a generous portion of aluminum foil in two. Fold both in half six times, and lay one on each side of the exposed filament. Rest the calibration slide on the filament and two aluminum foil pieces so that the "1 DIV = 0.01mm" reticle is centered on the filament, shown below. Turn on the LED ring lamp.
 
-![Camera Calibration Setup](media/cam_cal_setup.png)
+![Camera Calibration Setup](media/cam_cal_setup.jpg)
 
 4. From your RasPi command line:
 ```shell
@@ -165,6 +165,9 @@ g++ "cam_calibration.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o
 The camera is now calibrated, and you are ready to draw whiskers!
 
 ### Whisker Drawing
+
+#### Whisker Drawing Instructions
+1. 
 ```shell
 # Change to the whisker directory
 cd Documents/whisker_control
