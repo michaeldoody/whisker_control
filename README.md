@@ -12,6 +12,7 @@
     - [Tic GUI and Motor Settings](#tic-gui-and-motor-settings)
     - [Camera Calibration](#camera-calibration)
     - [Whisker Drawing](#whisker-drawing)
+        - [Important Equations and Variables](#important-equations-and-variables)
 - [Quick Guide](#quick-guide)
 - [Next Steps](#next-steps)
 - [Links](#links)
@@ -149,8 +150,10 @@ The purpose of `cam_calibration` is to measure how many pixel lengths equal a mi
 ```shell
 # Change to the whisker directory
 cd Documents/whisker_control
-# Compile cam_calibration (only need to do this once after editing cam_calibration.cpp)
+
+# Compile cam_calibration program (only need to do this once after editing cam_calibration.cpp)
 g++ "cam_calibration.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "cam_calibration"
+
 # Run cam_calibration
 ./cam_calibration
 ```
@@ -165,16 +168,25 @@ g++ "cam_calibration.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o
 The camera is now calibrated, and you are ready to draw whiskers!
 
 ### Whisker Drawing
+The `whisker` program consists of two phases: the setup / heating phase and the drawing phase.
 
 #### Whisker Drawing Instructions
-1. 
+1. Power on the RasPi, the Tic / motor, and the LED lamp. Turn on the heat tray so that its dial notch is pointing directly downwards (almost at the High heat setting). Allow the tray to heat up for about 20 minutes.
+2. While the tray is heating up, open up `ticgui`. Use the slider in the "Set target" box to manually move the actuator to the end of the track that is closest to the oven, and leave a ~0.5 cm gap between the edge of the gantry plate and the lock collar. Find the current position of the motor in the "Operation" box of the GUI. Open up whisker.cpp and edit the EXPECTED_START_POS to equal the value of the current motor position (Line 31).
+3. From your RasPi command line:
 ```shell
 # Change to the whisker directory
 cd Documents/whisker_control
-# Compile `whisker.cpp`
-g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whisker"
-```
 
+# Compile whisker program (only need to do this once after editing whisker.cpp)
+g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whisker"
+
+# Run whisker
+./whisker
+```
+4. The actuator will automatically move to its starting position closest to the oven. Two windows will open: one that shows the camera's view and another that shows the detected filament edges (blue and red lines) along with five measurements of the filament diameter (green lines). The average of these five diameter are shown in the command line window. As a confirmation of the accuracy of the camera calibration test, the average diameter should be 1750 +/- 40 microns (when using PolyMax<sup>TM</sup> PC 1.75 mm diameter 3D Printing Filament). 
+
+#### Important Equations and Variables
 
 
 ### Quick Guide
