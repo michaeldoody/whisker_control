@@ -28,11 +28,11 @@ Mat cdst, cdstP;
 float whiskerDia, prevDia, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 float linearPos, linearVel, currVel, expectedDia;
 int32_t motorPos, startPos, motorVel;
-int32_t EXPECTED_START_POS = 0; // Position motor resets to at beginning of each trial. Update only if motor has stalled or skipped step(s)
+int32_t EXPECTED_START_POS = 34900; // Position motor resets to at beginning of each trial. Update only if motor has stalled or skipped step(s)
 
 int baseDia = 1750; // Base diameter in microns
 int tipDia = 25; // Tip diameter in microns
-int arcLen = 325; // Whisker arc length in mm 
+int arcLen = 340; // Whisker arc length in mm 
 bool isTrackLimitReached = false;
 bool firstLoop = true;
 
@@ -42,7 +42,7 @@ int n_erode_dilate = 1;
 const int kernel_size = 5;
 
 // PID control
-float Kp = 1200;
+float Kp = 2000;
 float Ki = 1;
 float Kd = 1;
 float error_prev = 0;
@@ -198,7 +198,7 @@ static void WhiskerDiameter(int, void*)
         cout << "Whisker Diameter in Micrometers:  " << whiskerDia << endl;
     }
     
-    imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst);
+    imshow("Detected Lines - Standard Hough Line Transform", cdst);
     
 }
 
@@ -366,7 +366,7 @@ int main( int argc, char** argv )
         
         
         // Set motor velocity according to velocity profile
-        motorVel = pow(timeDiff, 3.0)/40000 + 100000;
+        motorVel = pow(timeDiff, 3.0)/70000000 + 500000;
         linearVel = (double)motorVel/1000000.0;
         cout << "Setting target linear velocity to " << linearVel << " mm/s" << endl;
         vars = handle.get_variables();
@@ -429,10 +429,10 @@ int main( int argc, char** argv )
         //time, steps, target velocity, actual velocity (adjusted from feedback), target diameter, actual diameter
 
 		dataFile << timeDiff << "," << linearVel << "," << currVel << "," << linearPos << "," << expectedDia << "," << whiskerDia << endl;
-
+        
         
         // Coded limit switch
-        if(linearPos > arcLen)
+        if(linearPos > ((double)arcLen + currVel/1.8))
         {
 			cout << "Actuator limit reached... Stopping motor" << endl;
 			handle.set_target_velocity(0);
@@ -440,7 +440,7 @@ int main( int argc, char** argv )
 			break;
 		}	
         
-        if (waitKey(5) == 27)
+        if (waitKey(1) == 27)
         {
             cout << "Esc key is pressed by user. Stopping the video" << endl;
             handle.set_target_velocity(0);
