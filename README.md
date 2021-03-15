@@ -172,7 +172,7 @@ The `whisker` program consists of two phases: the setup / heating phase and the 
 
 #### Whisker Drawing Instructions
 1. Power on the RasPi, the Tic / motor, and the LED lamp. Turn on the heat tray so that its dial notch is pointing directly downwards (almost at the High heat setting). Allow the tray to heat up for about 20 minutes.
-2. While the tray is heating up, open up `ticgui`. Use the slider in the "Set target" box to manually move the actuator to the end of the track that is closest to the oven, and leave a ~0.5 cm gap between the edge of the gantry plate and the lock collar. Find the current position of the motor in the "Operation" box of the GUI. Open up whisker.cpp and edit the EXPECTED_START_POS to equal the value of the current motor position (whisker.cpp, Line TODO).
+2. While the tray is heating up, open up `ticgui`. Use the slider in the "Set target" box to manually move the actuator to the end of the track that is closest to the oven, and leave a ~0.5 cm gap between the edge of the gantry plate and the lock collar. Find the current position of the motor in the "Operation" box of the GUI. Open up whisker.cpp and edit the START_POS to equal the value of the current motor position (whisker.cpp, Line TODO).
 3. From your RasPi command line:
 ```shell
 # Change to the whisker directory
@@ -195,7 +195,19 @@ g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whiske
 6. The motor will stop once a coded limit switch is triggered. Remove the drawn whisker from vice, and allow it to cool for a few seconds. Remove the left over filament from the oven and discard. If, however, the filament did not split in two during the drawing process, cut the filament in two at the oven exit. Remove and discard both pieces of filament. See [Important Equations and Variables](#important-equations-and-variables) for adjustments you can make to the code in order for the filament to taper and separate into two parts as expected.
 
 #### Important Equations and Variables
+The equations and variables listed below can be adjusted to produce better results for your whiskers
 
+- START_POS (Line TODO)
+    - The position that the motor resets to at the beginning of each whisker drawing trial. Adjust this value in the event that the motor stalls or skips steps. You can find a suitable value by opening up the Tic GUI and using the slider in the "Set target" box to manually move the actuator to the end of the track that is closest to the oven. Leave a ~0.5 cm gap between the edge of the gantry plate and the lock collar. Find the current position of the motor in the "Operation" box of the GUI, and set START_POS to that number.
+
+- baseDia, tipDia, arcLen (Lines TODO)
+    - The base diameter, tip diameter, and arc length of the whisker. These parameters can be adjusted to fit your desired whisker geometric profile.
+
+- PID control (Lines TODO)
+    - Adjust Kp, Ki, and Kd to adjust feedback control based on the camera measurements of the whisker diameter. At the time of writing, only proportional control is implemented.
+
+- motorVel (Line TODO)
+    - The velocity equation that the motor follows before taking into account feedback control. It follows the form *at^3 + b*, where *t* is 
 
 ### Quick Guide
 

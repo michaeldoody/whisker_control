@@ -28,7 +28,7 @@ Mat cdst, cdstP;
 float whiskerDia, prevDia, ppum; // Diameter of whisker in micrometers & Pixels per micrometer from ppum.txt
 float linearPos, linearVel, currVel, expectedDia;
 int32_t motorPos, startPos, motorVel;
-int32_t EXPECTED_START_POS = 34900; // Position motor resets to at beginning of each trial. Update only if motor has stalled or skipped step(s)
+int32_t START_POS = 34900; // Position motor resets to at beginning of each trial. Update only if motor has stalled or skipped step(s)
 
 int baseDia = 1750; // Base diameter in microns
 int tipDia = 25; // Tip diameter in microns
@@ -233,8 +233,6 @@ tic::handle open_handle(const char * desired_serial_number = nullptr)
 
 string datetime()	
 {	
-    
- 
     time_t rawtime;	
     struct tm * timeinfo;	
     char buffer[80];	
@@ -256,7 +254,7 @@ int main( int argc, char** argv )
 		// Open tic handle and reset actuator to start position
 		handle = open_handle();
 		handle.exit_safe_start();
-		handle.set_target_position(EXPECTED_START_POS);
+		handle.set_target_position(START_POS);
 		vars = handle.get_variables();
 		startPos = vars.get_current_position();
 	}
@@ -267,7 +265,7 @@ int main( int argc, char** argv )
 	}
 	
 	// Wait until actuator reaches start position
-	while(startPos < EXPECTED_START_POS*0.99 && startPos > EXPECTED_START_POS*1.01)
+	while(startPos < START_POS*0.99 && startPos > START_POS*1.01)
 	{
 		vars = handle.get_variables();
 		startPos = vars.get_current_position();
@@ -330,8 +328,6 @@ int main( int argc, char** argv )
     }
    
     // Create a csv file for whisker drawing data
-    //TODO 2021-01-20-11-28-30_1700D_25d_170-1S.csv
-    //time, linear Position, target velocity, actual velocity (adjusted from feedback), target diameter, actual diameter
     string filename = "data/" + datetime() + to_string(baseDia) + "D_" + to_string(tipDia) + "d_" + to_string(arcLen) + "S.csv";
     std::ofstream dataFile(filename);
     
@@ -372,7 +368,7 @@ int main( int argc, char** argv )
         vars = handle.get_variables();
         currVel = (double)vars.get_current_velocity() /1000000.0;
         motorPos = vars.get_current_position();
-        linearPos = (-7 * (double)motorPos / 688) + (7 * (double)EXPECTED_START_POS / 688); // DO NOT CHANGE. Equation converts motor position to linear actuator position (mm) 
+        linearPos = (-7 * (double)motorPos / 688) + (7 * (double)START_POS / 688); // DO NOT CHANGE. Equation converts motor position to linear actuator position (mm) 
         cout << "Current actuator position is " << linearPos << " mm" << endl;
 
         
