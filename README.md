@@ -172,7 +172,11 @@ The `whisker` program consists of two phases: the setup / heating phase and the 
 
 #### Whisker Drawing Instructions
 1. Power on the RasPi, the Tic / motor, and the LED lamp. Turn on the heat tray so that its dial notch is pointing directly downwards (almost at the High heat setting). Allow the tray to heat up for about 20 minutes.
-2. While the tray is heating up, open up `ticgui`. Use the slider in the "Set target" box to manually move the actuator to the end of the track that is closest to the oven, and leave a ~0.5 cm gap between the edge of the gantry plate and the lock collar. Find the current position of the motor in the "Operation" box of the GUI. Open up whisker.cpp and edit the START_POS to equal the value of the current motor position (whisker.cpp, Line TODO).
+2. While the tray is heating up, open up `ticgui`. Use the slider in the "Set target" box to manually move the actuator to the end of the track that is closest to the oven, and leave a ~0.5 cm gap between the edge of the gantry plate and the lock collar, shown in the image below. Find the current position of the motor in the "Operation" box of the GUI. Open up whisker.cpp and edit the START_POS to equal the value of the current motor position (whisker.cpp, Line TODO).
+
+![Set Target](media/set_target.jpg)
+
+
 3. From your RasPi command line:
 ```shell
 # Change to the whisker directory
@@ -184,7 +188,9 @@ g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whiske
 # Run whisker
 ./whisker
 ```
-4. The actuator will automatically move to its starting position closest to the oven. Cut a length of 3D printing filament ~500 mm long. Feed the filament through the front of the oven so that one end of the filament is exposed at either end of the oven. Clip one end of the filament to the metal binder clip. Allow ~4 cm between between the oven exit and the binder clip. Secure the other end with a vice that is attached to the table.
+4. The actuator will automatically move to its starting position closest to the oven. Cut a length of 3D printing filament ~500 mm long. Feed the filament through the front of the oven so that one end of the filament is exposed at either end of the oven. Clip one end of the filament to the metal binder clip. Allow ~1 cm between between the oven exit and the binder clip. Secure the other end with a vice that is attached to the table.
+
+![Setup Phase](media/setup_phase.gif)
 
 5. Allow the filament to heat up in the oven for 2 minutes. Two windows will open on your screen: one that shows the camera's view and another that shows the detected filament edges (blue and red lines) along with five measurements of the filament diameter (green lines). The average of these five diameter are shown in the command line window. As a confirmation of the accuracy of the camera calibration test, the average diameter should be 1750 +/- 40 microns (when using PolyMax<sup>TM</sup> PC 1.75 mm diameter 3D Printing Filament).
 
@@ -193,6 +199,10 @@ g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whiske
 5. Once the filament has heated up for 2 minutes, press the Spacebar to begin drawing the whisker. The motor will follow the velocity profile in Line TODO while the RasPi measures the diameter of the whisker in each frame of the video stream. The expected current whisker diameter is calculated based on the whisker parameters set in Lines TODO-TODO and the linear actuator's current position. The RasPi compares the measured diameter to the expected diameter and then commands the motor to adjust its velocity proportionally to the error. If the whisker diameter is too large, the motor will speed up, or if it's too small, the motor will slow down.
 
 6. The motor will stop once a coded limit switch is triggered. Remove the drawn whisker from vice, and allow it to cool for a few seconds. Remove the left over filament from the oven and discard. If, however, the filament did not split in two during the drawing process, cut the filament in two at the oven exit. Remove and discard both pieces of filament. See [Important Equations and Variables](#important-equations-and-variables) for adjustments you can make to the code in order for the filament to taper and separate into two parts as expected.
+
+7. Data is stored in data file TODO
+
+8. Repeat steps TODO
 
 #### Important Equations and Variables
 The equations and variables listed below can be adjusted to produce better results for your whiskers
@@ -204,10 +214,10 @@ The equations and variables listed below can be adjusted to produce better resul
     - The base diameter, tip diameter, and arc length of the whisker. These parameters can be adjusted to fit your desired whisker geometric profile.
 
 - PID control (Lines TODO & Lines TODO)
-    - Adjust Kp, Ki, and Kd to adjust feedback control based on the camera measurements of the whisker diameter. At the time of writing, only proportional control is implemented.
+    - Change Kp, Ki, and Kd to adjust feedback control based on the camera measurements of the whisker diameter. At the time of writing, only proportional control is implemented.
 
 - motorVel (Line TODO)
-    - The velocity equation that the motor follows before taking into account feedback control. It follows the form *at^3 + b*, where *t* is time in milliseconds. *a* and *b* can be modified to change the acceleration and the starting velocity, respectively. motorVel is calulated in pulses per second, but the linear velocity (linearVel, Line TODO) of the actuator is calulated in mm/s by dividing motorVel by 1000000, assuming that the motor's step mode is set to 1/4 step.
+    - The velocity equation that the motor follows before taking into account feedback control. It follows the form *a\*t^3 + b*, where *t* is time in milliseconds. *a* and *b* can be modified to change the acceleration and the starting velocity, respectively. motorVel is calulated in pulses per second, but the linear velocity (linearVel, Line TODO) of the actuator is calulated in mm/s by dividing motorVel by 1000000, assuming that the motor's step mode is set to 1/4 step.
 
 ### Quick Guide
 
