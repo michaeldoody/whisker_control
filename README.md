@@ -203,11 +203,11 @@ The equations and variables listed below can be adjusted to produce better resul
 - baseDia, tipDia, arcLen (Lines TODO)
     - The base diameter, tip diameter, and arc length of the whisker. These parameters can be adjusted to fit your desired whisker geometric profile.
 
-- PID control (Lines TODO)
+- PID control (Lines TODO & Lines TODO)
     - Adjust Kp, Ki, and Kd to adjust feedback control based on the camera measurements of the whisker diameter. At the time of writing, only proportional control is implemented.
 
 - motorVel (Line TODO)
-    - The velocity equation that the motor follows before taking into account feedback control. It follows the form *at^3 + b*, where *t* is 
+    - The velocity equation that the motor follows before taking into account feedback control. It follows the form *at^3 + b*, where *t* is time in milliseconds. *a* and *b* can be modified to change the acceleration and the starting velocity, respectively. motorVel is calulated in pulses per second, but the linear velocity (linearVel, Line TODO) of the actuator is calulated in mm/s by dividing motorVel by 1000000, assuming that the motor's step mode is set to 1/4 step.
 
 ### Quick Guide
 
