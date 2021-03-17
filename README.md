@@ -207,16 +207,16 @@ g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whiske
 #### Important Equations and Variables
 The equations and variables listed below can be adjusted to produce better results for your whiskers
 
-- START_POS (Line TODO)
+- START_POS (Line 31)
     - The position that the motor resets to at the beginning of each whisker drawing trial. Adjust this value in the event that the motor stalls or skips steps. You can find a suitable value by opening up the Tic GUI and using the slider in the "Set target" box to manually move the actuator to the end of the track that is closest to the oven. Leave a ~0.5 cm gap between the edge of the gantry plate and the lock collar. Find the current position of the motor in the "Operation" box of the GUI, and set START_POS to that number.
 
-- baseDia, tipDia, arcLen (Lines TODO)
+- baseDia, tipDia, arcLen (Lines 33 - 35)
     - The base diameter, tip diameter, and arc length of the whisker. These parameters can be adjusted to fit your desired whisker geometric profile.
 
-- PID control (Lines TODO & Lines TODO)
+- PID control (Lines 45 - 47 & Lines 396 - 399)
     - Change Kp, Ki, and Kd to adjust feedback control based on the camera measurements of the whisker diameter. At the time of writing, only proportional control is implemented.
 
-- motorVel (Line TODO)
+- motorVel (Line 365)
     - The velocity equation that the motor follows before taking into account feedback control. It follows the form *a\*t^3 + b*, where *t* is time in milliseconds. *a* and *b* can be modified to change the acceleration and the starting velocity, respectively. motorVel is calulated in pulses per second, but the linear velocity (linearVel, Line TODO) of the actuator is calculated in mm/s by dividing motorVel by 1000000, assuming that the motor's step mode is set to 1/4 step.
 
 ### Quick Guide
