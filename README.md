@@ -83,7 +83,9 @@ Next, I used the script `cam_calibration.cpp` to measure the length of the retic
 
     .
     ├── cam_calibration.cpp      # Outputs the pixels/μm constant when the calibration slide
-    ├                              reticle is in view of the camera
+    ├                              reticle is measured
+    ├── cam_calibration_old.cpp  # Previous method of calibrating. Automatically measures reticle,
+    ├                              but repeatability is difficult
     ├── whisker.cpp              # Velocity control loop
     ├── data/                    # Data from each whisker drawing trial is stored here in .csv files
     ├── media/                   # Image files folder
@@ -234,6 +236,7 @@ The equations and variables listed below can be adjusted to produce better resul
 3. Allow filament to heat up in the oven for 2 minutes. Use the diameter measurements displayed in the terminal window to confirm that the camera is calibrated correctly.
 4. Press the Spacebar to start drawing. Use the De-energize button from the Tic GUI as an emergency stop.
 5. Remove the drawn whisker, and discard the leftover filament. Data from each drawing is automatically saved in the `data` folder.
+6. Repeat Steps 1 - 5 for as many whisker as needed. If using a mouse and keyboard, shut down the RasPi  by pressing the Raspberry icon in the corner and choose the Shutdown option. If you are connected remotely using ssh, turn off the RasPi by typing `sudo shutdown -h -P now` in the terminal.
 
 
 ### Next Steps
@@ -243,6 +246,8 @@ Here are a few ideas that can be implemented to improve on this project
 - Add a camera calibration check during the whisker heat up phase to warn the user if the measured filament diameter is outside the 1750 +/- 40 microns range. This may indicate a need to recalibrate the camera.
 
 - Complete PID control. So far, only P control is implemented. With enough tuning, a motor velocity equation might not be needed.
+
+- Add limit switches to either end of the actuator track. This will remove the need to manually set START_POS and can also act as an emergency stop. See how to wire a limit switch with the Tic [here](https://www.pololu.com/docs/0J71/4.14).
 
 ## Links
 Check out this project in my portfolio at https://michaeldoody.github.io/
