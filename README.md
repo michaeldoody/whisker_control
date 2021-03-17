@@ -141,7 +141,7 @@ The purpose of `cam_calibration` is to measure how many pixel lengths equal a mi
 
 #### Calibration Instructions
 1. Plug in the power adapter connected to the Tic. Open the Tic GUI. In the "Set Target" box, select the "Set velocity" radio button and the "Return slider to zero when it is released" checkmark button. Click the green Resume button at the bottom of the GUI to energize the motor. Use the slider to move the actuator to its greatest position before reaching the end of the track. You can view the current motor position in the "Operation" box.
-2. Cut a length of 3D printing filament ~500 mm long. PolyMax<sup>TM</sup> PC was used for this project (1.75 mm diameter, 113&deg;C glass transition temperature). Feed the filament through the front of the oven so that one end of the filament is exposed at either end of the oven. Clip one end of the filament to the metal binder clip. Allow ~4 cm between between the oven exit and the binder clip. Secure the other end with a vice that is attached to the table.
+2. Cut a length of 3D printing filament ~500 mm long. PolyMax<sup>TM</sup> PC was used for this project (1.75 mm diameter, 113&deg;C glass transition temperature). Feed the filament through the front of the oven so that one end of the filament is exposed at either end of the oven. Clip one end of the filament to the metal binder clip. Allow ~4 cm between between the oven exit and the binder clip. Secure the other end with a vise that is attached to the table.
 3. Cut a generous portion of aluminum foil in two. Fold both in half six times, and lay one on each side of the exposed filament. Rest the calibration slide on the filament and two aluminum foil pieces so that the "1 DIV = 0.01mm" reticle is centered on the filament, shown below. Turn on the LED ring lamp.
 
 ![Camera Calibration Setup](media/cam_cal_setup.jpg)
@@ -171,10 +171,10 @@ The camera is now calibrated, and you are ready to draw whiskers!
 The `whisker` program consists of two phases: the setup / heating phase and the drawing phase.
 
 #### Whisker Drawing Instructions
-1. Power on the RasPi, the Tic / motor, and the LED lamp. Turn on the heat tray so that its dial notch is pointing directly downwards (almost at the High heat setting). Allow the tray to heat up for about 20 minutes.
-2. While the tray is heating up, open up `ticgui`. Use the slider in the "Set target" box to manually move the actuator to the end of the track that is closest to the oven, and leave a ~0.5 cm gap between the edge of the gantry plate and the lock collar, shown in the image below. Find the current position of the motor in the "Operation" box of the GUI. Open up whisker.cpp and edit the START_POS to equal the value of the current motor position (whisker.cpp, Line TODO).
+1. Power on the RasPi, the Tic / motor, and the LED lamp. Turn on the heat tray dial to its maximum temperature. Allow the tray to heat up for about 20 minutes.
+2. While the tray is heating up, open up `ticgui`. Use the slider in the "Set target" box to manually move the actuator to the end of the track that is closest to the oven, and leave a ~0.5 cm gap between the edge of the gantry plate and the lock collar, shown in the image below. Find the current position of the motor in the "Operation" box of the GUI. Open up whisker.cpp and edit the START_POS to equal the value of the current motor position (whisker.cpp, Line TODO). ***Keep the Tic GUI open to use the red De-energize button as an emergency stop button.***
 
-![Set Target](media/set_target.jpg)
+![Set Target](media/set_target.png)
 
 
 3. From your RasPi command line:
@@ -188,7 +188,7 @@ g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whiske
 # Run whisker
 ./whisker
 ```
-4. The actuator will automatically move to its starting position closest to the oven. Cut a length of 3D printing filament ~500 mm long. Feed the filament through the front of the oven so that one end of the filament is exposed at either end of the oven. Clip one end of the filament to the metal binder clip. Allow ~1 cm between between the oven exit and the binder clip. Secure the other end with a vice that is attached to the table.
+4. The actuator will automatically move to its starting position closest to the oven. Cut a length of 3D printing filament ~500 mm long. Feed the filament through the front of the oven so that one end of the filament is exposed at either end of the oven. Clip one end of the filament to the metal binder clip. Allow ~1 cm between between the oven exit and the binder clip. Secure the other end with a vise that is attached to the table.
 
 ![Setup Phase](media/setup_phase.gif)
 
@@ -196,13 +196,11 @@ g++ "whisker.cpp" `pkg-config libpololu-tic-1 --cflags --libs opencv` -o "whiske
 
 ![Whisker Lines](media/whisker_lines.png)
 
-5. Once the filament has heated up for 2 minutes, press the Spacebar to begin drawing the whisker. The motor will follow the velocity profile in Line TODO while the RasPi measures the diameter of the whisker in each frame of the video stream. The expected current whisker diameter is calculated based on the whisker parameters set in Lines TODO-TODO and the linear actuator's current position. The RasPi compares the measured diameter to the expected diameter and then commands the motor to adjust its velocity proportionally to the error. If the whisker diameter is too large, the motor will speed up, or if it's too small, the motor will slow down.
+6. Once the filament has heated up for 2 minutes, press the Spacebar to begin drawing the whisker. The motor will follow the velocity profile in Line TODO while the RasPi measures the diameter of the whisker in each frame of the video stream. The expected current whisker diameter is calculated based on the whisker parameters set in Lines TODO-TODO and the linear actuator's current position. The RasPi compares the measured diameter to the expected diameter and then commands the motor to adjust its velocity proportionally to the error. If the whisker diameter is too large, the motor will speed up, or if it's too small, the motor will slow down.
 
-6. The motor will stop once a coded limit switch is triggered. Remove the drawn whisker from vice, and allow it to cool for a few seconds. Remove the left over filament from the oven and discard. If, however, the filament did not split in two during the drawing process, cut the filament in two at the oven exit. Remove and discard both pieces of filament. See [Important Equations and Variables](#important-equations-and-variables) for adjustments you can make to the code in order for the filament to taper and separate into two parts as expected.
+7. The motor will stop once a coded limit switch is triggered. Remove the drawn whisker from vise, and allow it to cool for a few seconds. Remove the left over filament from the oven and discard. If, however, the filament did not split in two during the drawing process, cut the filament in two at the oven exit. Remove and discard both pieces of filament. See [Important Equations and Variables](#important-equations-and-variables) for adjustments you can make to the code in order for the filament to taper and separate into two parts as expected. Data from each drawing is saved to a csv file which is stored in the folder labeled `data`. The csv file contains the Time (milliseconds), Target Velocity (mm/s), Actual Velocity (mm/s), Target Whisker Diameter (microns), and Actual Whisker Diameter (microns). 
 
-7. Data is stored in data file TODO
-
-8. Repeat steps TODO
+8. Repeat steps 3 through 7 for consecutive whisker drawings.
 
 #### Important Equations and Variables
 The equations and variables listed below can be adjusted to produce better results for your whiskers
@@ -217,13 +215,34 @@ The equations and variables listed below can be adjusted to produce better resul
     - Change Kp, Ki, and Kd to adjust feedback control based on the camera measurements of the whisker diameter. At the time of writing, only proportional control is implemented.
 
 - motorVel (Line TODO)
-    - The velocity equation that the motor follows before taking into account feedback control. It follows the form *a\*t^3 + b*, where *t* is time in milliseconds. *a* and *b* can be modified to change the acceleration and the starting velocity, respectively. motorVel is calulated in pulses per second, but the linear velocity (linearVel, Line TODO) of the actuator is calulated in mm/s by dividing motorVel by 1000000, assuming that the motor's step mode is set to 1/4 step.
+    - The velocity equation that the motor follows before taking into account feedback control. It follows the form *a\*t^3 + b*, where *t* is time in milliseconds. *a* and *b* can be modified to change the acceleration and the starting velocity, respectively. motorVel is calulated in pulses per second, but the linear velocity (linearVel, Line TODO) of the actuator is calculated in mm/s by dividing motorVel by 1000000, assuming that the motor's step mode is set to 1/4 step.
 
 ### Quick Guide
+#### Do Once
+1. [Install](#installation) the necessary packages.
+2. Set the correct [motor settings](#tic-gui-and-motor-settings) in the Tic GUI.
+3. [Calibrate](#camera-calibration) the camera using `cam_calibration`. 
+
+#### Do Once Before the First Whisker Draw of the Day
+1. Turn the heat tray dial to its max temperature and allow to heat up for 20 minutes.
+2. Set actuator starting position in `whisker.cpp` ([Whisker Drawing](#whisker-drawing) Step 2). 
+
+#### Do For Each Whisker Drawing
+[Whisker Drawing](#whisker-drawing) Steps 3 - 7
+1. Run `./whisker`.
+2. Feed a strand of filament through oven and secure both sides.
+3. Allow filament to heat up in the oven for 2 minutes. Use the diameter measurements displayed in the terminal window to confirm that the camera is calibrated correctly.
+4. Press the Spacebar to start drawing. Use the De-energize button from the Tic GUI as an emergency stop.
+5. Remove the drawn whisker, and discard the leftover filament. Data from each drawing is automatically saved in the `data` folder.
 
 
 ### Next Steps
+Here are a few ideas that can be implemented to improve on this project
+- A more robust and simpile calibration test. The current one depends on the user accurately dragging and dropping a box around a blurry crosshairs. This is because the camera needs to be focused on the filament so that it can detect the edges clearly and, therefore, measure the whisker diameter accurately. However, during the calibration test, when the filament edges are in focus, the calibration reticle is blurry.
 
+- Add a camera calibration check during the whisker heat up phase to warn the user if the measured filament diameter is outside the 1750 +/- 40 microns range. This may indicate a need to recalibrate the camera.
+
+- Complete PID control. So far, only P control is implemented. With enough tuning, a motor velocity equation might not be needed.
 
 ## Links
 Check out this project in my portfolio at https://michaeldoody.github.io/

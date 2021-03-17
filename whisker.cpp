@@ -320,7 +320,7 @@ int main( int argc, char** argv )
         cout << endl;
         cout << endl;
         
-        if (waitKey(10) == 13)
+        if (waitKey(10) == 32)
         {
             cout << "Whisker drawing starting now..." << endl;
             break;
