@@ -15,6 +15,7 @@
         - [Important Equations and Variables](#important-equations-and-variables)
 - [Quick Guide](#quick-guide)
 - [Next Steps](#next-steps)
+- [Acknowledgement](#acknowledgement)
 - [Links](#links)
 
 ## Project Objectives
@@ -174,7 +175,7 @@ The `whisker` program consists of two phases: the setup / heating phase and the 
 
 #### Whisker Drawing Instructions
 1. Power on the RasPi, the Tic / motor, and the LED lamp. Turn on the heat tray dial to its maximum temperature. Allow the tray to heat up for about 20 minutes.
-2. While the tray is heating up, open up `ticgui`. Use the slider in the "Set target" box to manually move the actuator to the end of the track that is closest to the oven, and leave a ~0.5 cm gap between the edge of the gantry plate and the lock collar, shown in the image below. Find the current position of the motor in the "Operation" box of the GUI. Open up whisker.cpp and edit the START_POS to equal the value of the current motor position (whisker.cpp, Line TODO). ***Keep the Tic GUI open to use the red De-energize button as an emergency stop button.***
+2. While the tray is heating up, open up `ticgui`. Use the slider in the "Set target" box to manually move the actuator to the end of the track that is closest to the oven, and leave a ~0.5 cm gap between the edge of the gantry plate and the lock collar, shown in the image below. Find the current position of the motor in the "Operation" box of the GUI. Open up whisker.cpp and edit the START_POS to equal the value of the current motor position (whisker.cpp, Line 31). ***Keep the Tic GUI open to use the red De-energize button as an emergency stop button.***
 
 ![Set Target](media/set_target.png)
 
@@ -243,11 +244,18 @@ The equations and variables listed below can be adjusted to produce better resul
 Here are a few ideas that can be implemented to improve on this project
 - A more robust and simpile calibration test. The current one depends on the user accurately dragging and dropping a box around a blurry crosshairs. This is because the camera needs to be focused on the filament so that it can detect the edges clearly and, therefore, measure the whisker diameter accurately. However, during the calibration test, when the filament edges are in focus, the calibration reticle is blurry.
 
-- Add a camera calibration check during the whisker heat up phase to warn the user if the measured filament diameter is outside the 1750 +/- 40 microns range. This may indicate a need to recalibrate the camera.
+- Find a way to accurately measure the filament at thinner diameters. 
 
 - Complete PID control. So far, only P control is implemented. With enough tuning, a motor velocity equation might not be needed.
 
+- Add a camera calibration check during the whisker heat up phase to warn the user if the measured filament diameter is outside the 1750 +/- 40 microns range. This may indicate a need to recalibrate the camera.
+
+- The current camera calibration process measures the base diameter of the whisker, so during the first third of each whisker drawing, the camera measurements have low error (~4%). However, as the whisker is drawn longer and longer, the error steadily increases. The error shoots up drastically at the tip of the whisker (~40%). Measurements taken with the camera and a caliper both have a standard deviation of 20 microns. Finding a method for increasing the accuracy of the camera's measurements at the middle and tip of the whisker would prove useful for drawing whisker closer to the intended geometric profile.
+
 - Add limit switches to either end of the actuator track. This will remove the need to manually set START_POS and can also act as an emergency stop. See how to wire a limit switch with the Tic [here](https://www.pololu.com/docs/0J71/4.14).
+
+## Acknowledgements
+I would first like to thank Professor Mitra Hartmann for leading this project with her vision of the Whisker Drawing Mechanism. A special thanks is owed to Professor Matt Elwin for lending his mechatronics expertise. And, last but not least, I would like to thank Hannah Emnett and Kevin Kleczka for meeting with me virtually every week and providing much needed advice and suggestions during this project's challenges.
 
 ## Links
 Check out this project in my portfolio at https://michaeldoody.github.io/
